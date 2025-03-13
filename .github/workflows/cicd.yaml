@@ -1,0 +1,40 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 코드 체크아웃: 레포지토리의 코드를 가져오기
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. JDK 설정
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle' # gradle 의존성 캐시 설정
+
+      # 3. Gradle로 프로젝트 빌드 및 테스트
+      - name: Build and Test with Gradle
+        run: ./gradlew clean build
+
+      # TODO: 테스트 결과 Discord로 알림 전송
+
+      # TODO: AWS 인증 설정 후 ECR에 빌드한 도커 이미지 업로드 (for ECR upload, only on PUSH event)
+
+#  deploy:
+#   needs: build-and-test
+#   runs-on: ubuntu-latest
+#   if: github.event_name == 'push'
+#   steps:
+#  TODO: AWS 인증 설정 후 ECR에 올린 이미지 가져와서 배포하기
