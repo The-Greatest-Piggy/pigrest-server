@@ -28,7 +28,20 @@ jobs:
       - name: Build and Test with Gradle
         run: ./gradlew clean build
 
-      # 4. 테스트 결과 Discord로 알림 전송
+      # 4-1. 테스트 결과에 따라 환경 변수 설정
+      - name: Set success color & message
+        if: ${{ success() }}
+        run: |
+          echo "COLOR=5763720" >> $GITHUB_ENV
+          echo "MESSAGE=✅ YEAH-! 빌드/테스트 성공했꿀-!" >> $GITHUB_ENV
+
+      - name: Set failure color & message
+        if: ${{ failure() }}
+        run: |
+          echo "COLOR=16732240" >> $GITHUB_ENV
+          echo "MESSAGE=❌ DAMN!!!! 빌드/테스트 실패했꿀!!!" >> $GITHUB_ENV
+
+      # 4-2. 테스트 결과 Discord로 알림 전송
       - name: Send Discord Notification (PR Build & Test)
         uses: Ilshidur/action-discord@master
         env:
@@ -38,8 +51,8 @@ jobs:
           DISCORD_EMBEDS: | 
             [{
               "title": "${{ github.event.pull_request.title }}",
-              "color": "${{ job.status == 'success' && 5763720 || 16732240 }},
-              "description": "${{ job.status == 'success' && '✅ YEAH-! 빌드/테스트 성공했꿀-!' || '❌ DAMN!!!! 빌드/테스트 실패했꿀!!!' }}\n${{ github.event.pull_request.html_url }}",
+              "color": ${{ env.COLOR }},
+              "description": "${{ env.MESSAGE }}\n${{ github.event.pull_request.html_url }}",
               "fields": [
                 {
                   "name": "Repository",
@@ -53,6 +66,7 @@ jobs:
                 }
               ]
             }]
+
 
       # TODO: AWS 인증 설정 후 ECR에 빌드한 도커 이미지 업로드 (for ECR upload, only on PUSH event)
 
