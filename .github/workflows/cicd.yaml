@@ -28,7 +28,31 @@ jobs:
       - name: Build and Test with Gradle
         run: ./gradlew clean build
 
-      # TODO: 테스트 결과 Discord로 알림 전송
+      # 4. 테스트 결과 Discord로 알림 전송
+      - name: Send Discord Notification (PR Build & Test)
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: PIGGY
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
+          DISCORD_EMBEDS: | 
+            [{
+              "title": "${{ github.event.pull_request.title }}",
+              "color": "${{ job.status == 'success' ? 5763720 : 16732240 }},
+              "description": "${{ job.status == 'success' ? '✅ YEAH-! 빌드/테스트 성공했꿀-!' : '❌ DAMN!!!! 빌드/테스트 실패했꿀!!!' }}\n${{ github.event.pull_request.html_url }}",
+              "fields": [
+                {
+                  "name": "Repository",
+                  "value": "[${{ github.repository }}](https://github.com/${{ github.repository }})",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.event.pull_request.user.login }}",
+                  "inline": true
+                }
+              ]
+            }]
 
       # TODO: AWS 인증 설정 후 ECR에 빌드한 도커 이미지 업로드 (for ECR upload, only on PUSH event)
 
