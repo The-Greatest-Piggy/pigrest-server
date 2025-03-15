@@ -38,8 +38,8 @@ jobs:
           DISCORD_EMBEDS: | 
             [{
               "title": "${{ github.event.pull_request.title }}",
-              "color": "${{ job.status == 'success' ? 5763720 : 16732240 }},
-              "description": "${{ job.status == 'success' ? '✅ YEAH-! 빌드/테스트 성공했꿀-!' : '❌ DAMN!!!! 빌드/테스트 실패했꿀!!!' }}\n${{ github.event.pull_request.html_url }}",
+              "color": "${{ job.status == 'success' && 5763720 || 16732240 }},
+              "description": "${{ job.status == 'success' && '✅ YEAH-! 빌드/테스트 성공했꿀-!' || '❌ DAMN!!!! 빌드/테스트 실패했꿀!!!' }}\n${{ github.event.pull_request.html_url }}",
               "fields": [
                 {
                   "name": "Repository",
