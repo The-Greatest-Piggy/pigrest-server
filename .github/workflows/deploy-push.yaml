@@ -1,0 +1,86 @@
+name: Deploy on Push to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. AWS 자격 증명 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 3. ECR 로그인 후, 이미지 빌드 및 업로드
+      - name: Build Docker Image and Push to ECR
+        run: |
+          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URI }}
+          docker build -t pigrest-server .
+          docker tag pigrest-server:latest ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
+          docker push ${{ secrets.AWS_ECR_URI }}:pigrest-server:latest
+
+      # 4. ssh key 설정
+      - name: Set SSH Key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > pigrest_key.pem
+          chmod 600 pigrest_key.pem
+
+      # 5. EC2에 SSH 접속 후 배포
+      - name: Deploy on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i pigrest_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} "~/server-deploy.sh"
+
+      # 6-1. 배포 결과에 따라 환경 변수 설정
+      - name: Set default value
+        run: |
+          echo "RECENT_COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Set success color & message
+        if: ${{ success() }}
+        run: |
+          echo "COLOR=5763720" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🚀 YEAH-! 배포 성공했꿀-!" >> $GITHUB_ENV
+
+      - name: Set failure color & message
+        if: ${{ failure() }}
+        run: |
+          echo "COLOR=16732240" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🤯 BOOM!!!! 배포 실패했꿀!!!" >> $GITHUB_ENV
+
+      # 6-2. Main 브랜치에 Push할 때, 배포 결과 Discord로 알림 전송
+      - name: Send Discord Notification (Push to Main Branch)
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: PIGGY
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
+          DISCORD_EMBEDS: |
+            [{
+              "title": "${{ env.RECENT_COMMIT_MESSAGE }} (${{ env.COMMIT_HASH }})",
+              "color": ${{ env.COLOR }},
+              "description": "${{ env.DEPLOY_RESULT_MESSAGE }}",
+              "fields": [
+                {
+                  "name": "Repository",
+                  "value": "[${{ github.repository }}](https://github.com/${{ github.repository }})",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.actor }}",
+                  "inline": true
+                }
+              ]
+            }]

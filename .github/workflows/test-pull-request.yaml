@@ -1,0 +1,66 @@
+name: Run Tests on Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      # 1. 코드 체크아웃: 레포지토리의 코드를 가져오기
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. JDK 설정
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+          cache: 'gradle' # gradle 의존성 캐시 설정
+
+      # 3. Gradle로 프로젝트 빌드 및 테스트
+      - name: Build and Test with Gradle
+        run: ./gradlew clean build
+
+      # 4-1. Pull Request일 때, 테스트 결과에 따라 환경 변수 설정
+      - name: Set success color & message
+        if: ${{ success() }}
+        run: |
+          echo "COLOR=5763720" >> $GITHUB_ENV
+          echo "TEST_RESULT_MESSAGE=✅ YEAH-! 빌드/테스트 성공했꿀-!" >> $GITHUB_ENV
+
+      - name: Set failure color & message
+        if: ${{ failure() }}
+        run: |
+          echo "COLOR=16732240" >> $GITHUB_ENV
+          echo "TEST_RESULT_MESSAGE=❌ DAMN!!!! 빌드/테스트 실패했꿀!!!" >> $GITHUB_ENV
+
+      # 4-2. Pull Request일 때, 테스트 결과 Discord로 알림 전송
+      - name: Send Discord Notification (PR Build & Test)
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: PIGGY
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
+          DISCORD_EMBEDS: |
+            [{
+              "title": "${{ github.event.pull_request.title }}",
+              "color": ${{ env.COLOR }},
+              "description": "${{ env.TEST_RESULT_MESSAGE }}\n${{ github.event.pull_request.html_url }}",
+              "fields": [
+                {
+                  "name": "Repository",
+                  "value": "[${{ github.repository }}](https://github.com/${{ github.repository }})",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.event.pull_request.user.login }}",
+                  "inline": true
+                }
+              ]
+            }]
