@@ -1,0 +1,16 @@
+# 운영 환경
+
+spring:
+  datasource:
+    url: ${DB_URL} # 운영용 DB
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    jpa:
+      hibernate:
+        ddl-auto: validate # 테이블 변경 금지
+      show-sql: false # SQL 로그 출력 안함
+      properties:
+        hibernate:
+          format_sql: true

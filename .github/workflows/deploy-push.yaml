@@ -25,7 +25,11 @@ jobs:
       - name: Build Docker Image and Push to ECR
         run: |
           aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URI }}
-          docker build -t pigrest-server .
+          docker build \
+            --build-arg DB_URL=${{ secrets.DB_URL }} \
+            --build-arg DB_USERNAME=${{ secrets.DB_USERNAME }} \
+            --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -t pigrest-server .
           docker tag pigrest-server:latest ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
           docker push ${{ secrets.AWS_ECR_URI }}:pigrest-server:latest
 
