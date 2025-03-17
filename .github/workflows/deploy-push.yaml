@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
     steps:
       # 1. 코드 체크아웃
       - name: Checkout code
@@ -62,6 +61,7 @@ jobs:
       # 6-2. Main 브랜치에 Push할 때, 배포 결과 Discord로 알림 전송
       - name: Send Discord Notification (Push to Main Branch)
         uses: Ilshidur/action-discord@master
+        if: ${{ always() }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: PIGGY

@@ -8,7 +8,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
     steps:
       # 1. 코드 체크아웃: 레포지토리의 코드를 가져오기
       - name: Checkout code
@@ -42,6 +41,7 @@ jobs:
       # 4-2. Pull Request일 때, 테스트 결과 Discord로 알림 전송
       - name: Send Discord Notification (PR Build & Test)
         uses: Ilshidur/action-discord@master
+        if: ${{ always() }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: PIGGY

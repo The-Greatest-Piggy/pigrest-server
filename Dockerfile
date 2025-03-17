@@ -1,6 +1,7 @@
 FROM amazoncorretto:21 AS builder
 WORKDIR /pigrest-server
 COPY . .
+RUN chmod +x ./gradlew
 RUN ./gradlew build -x test
 
 FROM amazoncorretto:21
