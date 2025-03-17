@@ -31,7 +31,7 @@ jobs:
             --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -t pigrest-server .
           docker tag pigrest-server:latest ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
-          docker push ${{ secrets.AWS_ECR_URI }}:pigrest-server:latest
+          docker push ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
 
       # 4. ssh key 설정
       - name: Set SSH Key
