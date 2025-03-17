@@ -11,6 +11,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       # 1. 코드 체크아웃: 레포지토리의 코드를 가져오기
       - name: Checkout code
@@ -21,38 +22,38 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: 'corretto'
           cache: 'gradle' # gradle 의존성 캐시 설정
 
       # 3. Gradle로 프로젝트 빌드 및 테스트
       - name: Build and Test with Gradle
         run: ./gradlew clean build
 
-      # 4-1. 테스트 결과에 따라 환경 변수 설정
+      # 4-1. Pull Request일 때, 테스트 결과에 따라 환경 변수 설정
       - name: Set success color & message
         if: ${{ success() }}
         run: |
           echo "COLOR=5763720" >> $GITHUB_ENV
-          echo "MESSAGE=✅ YEAH-! 빌드/테스트 성공했꿀-!" >> $GITHUB_ENV
+          echo "TEST_RESULT_MESSAGE=✅ YEAH-! 빌드/테스트 성공했꿀-!" >> $GITHUB_ENV
 
       - name: Set failure color & message
         if: ${{ failure() }}
         run: |
           echo "COLOR=16732240" >> $GITHUB_ENV
-          echo "MESSAGE=❌ DAMN!!!! 빌드/테스트 실패했꿀!!!" >> $GITHUB_ENV
+          echo "TEST_RESULT_MESSAGE=❌ DAMN!!!! 빌드/테스트 실패했꿀!!!" >> $GITHUB_ENV
 
-      # 4-2. 테스트 결과 Discord로 알림 전송
+      # 4-2. Pull Request일 때, 테스트 결과 Discord로 알림 전송
       - name: Send Discord Notification (PR Build & Test)
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: PIGGY
           DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
-          DISCORD_EMBEDS: | 
+          DISCORD_EMBEDS: |
             [{
               "title": "${{ github.event.pull_request.title }}",
               "color": ${{ env.COLOR }},
-              "description": "${{ env.MESSAGE }}\n${{ github.event.pull_request.html_url }}",
+              "description": "${{ env.TEST_RESULT_MESSAGE }}\n${{ github.event.pull_request.html_url }}",
               "fields": [
                 {
                   "name": "Repository",
@@ -67,12 +68,84 @@ jobs:
               ]
             }]
 
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # TODO: AWS 인증 설정 후 ECR에 빌드한 도커 이미지 업로드 (for ECR upload, only on PUSH event)
+      # 2. AWS 자격 증명 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-#  deploy:
-#   needs: build-and-test
-#   runs-on: ubuntu-latest
-#   if: github.event_name == 'push'
-#   steps:
-#  TODO: AWS 인증 설정 후 ECR에 올린 이미지 가져와서 배포하기
+      # 3. ssh key 설정
+      - name: Set SSH Key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > pigrest_key.pem
+          chmod 600 pigrest_key.pem
+
+      # 4. EC2에 SSH 접속 후 배포
+      - name: Deploy on EC2
+        run: |
+          OUTPUT=$(ssh -o StrictHostKeyChecking=no -i pigrest_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} "echo 'SSH 연결 성공'")
+          echo "$OUTPUT"
+          
+          cd ~/pigrest
+          git pull origin main
+          
+          docker stop pigrest-server || true
+          docker rm pigrest-server || true
+          docker rmi pigrest-server:latest || true
+          
+          docker build -t pigrest-server:latest .
+          docker run -d --name pigrest-server -p 8080:8080 pigrest-server:latest
+
+      # 5-1. 배포 결과에 따라 환경 변수 설정
+      - name: Set default value
+        run: |
+          echo "RECENT_COMMIT_MESSAGE=$(git log -1 --pretty=format: '%s')" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Set success color & message
+        if: ${{ success() }}
+        run: |
+          echo "COLOR=5763720" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🚀 YEAH-! 배포 성공했꿀-!" >> $GITHUB_ENV
+
+      - name: Set failure color & message
+        if: ${{ failure() }}
+        run: |
+          echo "COLOR=16732240" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🤯 BOOM!!!! 배포 실패했꿀!!!" >> $GITHUB_ENV
+
+      # 5-2. Main 브랜치에 Push할 때, 배포 결과 Discord로 알림 전송
+      - name: Send Discord Notification (Push to Main Branch)
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: PIGGY
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
+          DISCORD_EMBEDS: |
+            [{
+              "title": "${{ env.RECENT_COMMIT_MESSAGE }} (${{ env.COMMIT_HASH }})",
+              "color": ${{ env.COLOR }},
+              "description": "${{ env.DEPLOY_RESULT_MESSAGE }}",
+              "fields": [
+                {
+                  "name": "Repository",
+                  "value": "[${{ github.repository }}](https://github.com/${{ github.repository }})",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.event.pull_request.user.login }}",
+                  "inline": true
+                }
+              ]
+            }]
