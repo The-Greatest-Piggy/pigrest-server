@@ -106,3 +106,47 @@ jobs:
           
           docker build -t pigrest-server:latest .
           docker run -d --name pigrest-server -p 8080:8080 pigrest-server:latest
+
+      # 5-1. 배포 결과에 따라 환경 변수 설정
+      - name: Set default value
+        run: |
+          echo "RECENT_COMMIT_MESSAGE=$(git log -1 --pretty=format: '%s')" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Set success color & message
+        if: ${{ success() }}
+        run: |
+          echo "COLOR=5763720" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🚀 YEAH-! 배포 성공했꿀-!" >> $GITHUB_ENV
+
+      - name: Set failure color & message
+        if: ${{ failure() }}
+        run: |
+          echo "COLOR=16732240" >> $GITHUB_ENV
+          echo "DEPLOY_RESULT_MESSAGE=🤯 BOOM!!!! 배포 실패했꿀!!!" >> $GITHUB_ENV
+
+      # 5-2. Main 브랜치에 Push할 때, 배포 결과 Discord로 알림 전송
+      - name: Send Discord Notification (Push to Main Branch)
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: PIGGY
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/186018866?s=400&u=576494f47a6c179ead62727727a6c3849a3c40c3&v=4
+          DISCORD_EMBEDS: |
+            [{
+              "title": "${{ env.RECENT_COMMIT_MESSAGE }} (${{ env.COMMIT_HASH }})",
+              "color": ${{ env.COLOR }},
+              "description": "${{ env.DEPLOY_RESULT_MESSAGE }}",
+              "fields": [
+                {
+                  "name": "Repository",
+                  "value": "[${{ github.repository }}](https://github.com/${{ github.repository }})",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.event.pull_request.user.login }}",
+                  "inline": true
+                }
+              ]
+            }]
