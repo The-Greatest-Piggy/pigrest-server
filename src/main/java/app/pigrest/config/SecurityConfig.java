@@ -20,7 +20,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/openapi3.yaml",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/login").permitAll()
                         .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults());
 
