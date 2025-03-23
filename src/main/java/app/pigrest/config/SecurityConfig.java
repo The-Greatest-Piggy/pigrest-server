@@ -27,15 +27,13 @@ public class SecurityConfig {
                                 "/openapi3.yaml",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
+                                "/auth/**",
                                 "/login").permitAll()
                         .anyRequest().authenticated())
-            .httpBasic(Customizer.withDefaults());
-        http.csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/**").permitAll()
-                .anyRequest().authenticated());
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         return http.build();
     }
