@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+	id 'com.epages.restdocs-api-spec' version '0.18.2'
 }
 
 group = 'app'
@@ -31,12 +32,18 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0' // Swagger UI
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // Spring REST Docs: `.adoc` 형식 문서 생성
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.1' // 테스트 실행 시 OpenAPI 문서 만들기 위한 API 정보 수집
+//	testImplementation 'com.epages:restdocs-api-spec-openapi3-generator:0.19.1' // OpenAPI 3.0 형식(JSON/YAML)으로 변환
+
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -46,7 +53,18 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-tasks.named('asciidoctor') {
-	inputs.dir snippetsDir
-	dependsOn test
+openapi3 {
+	server = 'localhost:8080'
+	title = 'Pigrest API'
+	description = 'Pigrest API description'
+//	tagDescriptionsPropertiesFile = '/src/docs/tag-descriptions.yaml'
+	outputDirectory = "src/main/resources/public"
+	version = '0.1.0'
+	format = 'yaml'
+}
+
+postman {
+	title = 'Pigrest API'
+	version = '0.1.0'
+	baseUrl = 'https://localhost:8080'
 }
