@@ -1,7 +1,7 @@
 package app.pigrest.auth.service;
 
-import app.pigrest.auth.dto.LoginRequest;
-import app.pigrest.auth.dto.RegisterRequest;
+import app.pigrest.auth.dto.request.LoginRequest;
+import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.model.Auth;
 import app.pigrest.auth.model.Member;
 import app.pigrest.auth.repository.AuthRepository;
