@@ -1,6 +1,6 @@
-package app.pigrest.auth.repository;
+package app.pigrest.member.repository;
 
-import app.pigrest.auth.model.Member;
+import app.pigrest.member.model.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {

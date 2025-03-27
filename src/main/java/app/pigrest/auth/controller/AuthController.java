@@ -1,6 +1,7 @@
 package app.pigrest.auth.controller;
 
 import app.pigrest.auth.dto.request.LoginRequest;
+import app.pigrest.member.service.MemberService;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,6 @@
-package app.pigrest.auth.model;
+package app.pigrest.member.model;
 
+import app.pigrest.auth.model.Auth;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
