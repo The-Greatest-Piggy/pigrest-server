@@ -1,4 +1,4 @@
-package app.pigrest.auth.dto;
+package app.pigrest.auth.dto.request;
 
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package app.pigrest.auth.service;
+package app.pigrest.member.service;
 
 import org.springframework.stereotype.Service;
 

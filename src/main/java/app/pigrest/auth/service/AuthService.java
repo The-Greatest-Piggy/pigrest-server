@@ -1,11 +1,11 @@
 package app.pigrest.auth.service;
 
-import app.pigrest.auth.dto.LoginRequest;
-import app.pigrest.auth.dto.RegisterRequest;
+import app.pigrest.auth.dto.request.LoginRequest;
+import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.model.Auth;
-import app.pigrest.auth.model.Member;
 import app.pigrest.auth.repository.AuthRepository;
-import app.pigrest.auth.repository.MemberRepository;
+import app.pigrest.member.model.Member;
+import app.pigrest.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,15 +24,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long create(RegisterRequest request) {
+    public Member create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
         authRepository.save(auth);
 
-        Member member = Member.of(request.getNickname(), auth);
+        Member member = Member.of(request.getUsername(), auth);
         memberRepository.save(member);
 
-        return member.getId();
+        return member;
     }
 
     public void login(LoginRequest request) {
