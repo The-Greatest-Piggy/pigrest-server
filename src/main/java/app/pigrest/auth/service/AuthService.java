@@ -24,15 +24,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long create(RegisterRequest request) {
+    public Member create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
         authRepository.save(auth);
 
-        Member member = Member.of(request.getNickname(), auth);
+        Member member = Member.of(request.getUsername(), auth);
         memberRepository.save(member);
 
-        return member.getId();
+        return member;
     }
 
     public void login(LoginRequest request) {

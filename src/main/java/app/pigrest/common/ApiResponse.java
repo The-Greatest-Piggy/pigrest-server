@@ -28,7 +28,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(statusCode.getStatus(), message, statusCode.getCode(), null);
     }
 
-    public static <R> ApiResponse<R> noContent() {
-        return success(ApiStatusCode.NO_CONTENT, null, null);
+    public static <R> ApiResponse<R> noContent(String message) {
+        return success(ApiStatusCode.NO_CONTENT, message, null);
     }
 }
