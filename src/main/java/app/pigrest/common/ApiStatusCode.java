@@ -28,6 +28,7 @@ public enum ApiStatusCode {
     RESOURCE_NOT_FOUND(404, "RESOURCE_NOT_FOUND"),
 
     // 500: 서버 오류
+    S3_UPLOAD_ERROR(500, "S3_UPLOAD_ERROR"),
     INTERNAL_SERVER_ERROR(500, "INTERNAL_SERVER_ERROR");
 
     private final int status;
