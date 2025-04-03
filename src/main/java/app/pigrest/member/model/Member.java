@@ -23,24 +23,24 @@ public class Member {
     private UUID id; // TODO: UUID 버전 변경 예정
 
     @Column(nullable = false)
-    private String username;
+    private String nickname; // 닉네임
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @OneToOne
-    @JoinColumn(name = "auth_id", nullable = false)
+    @JoinColumn(name = "id", referencedColumnName = "id")
     private Auth auth;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Member(String username, Auth auth) {
-        this.username = username;
+    public Member(String nickname, Auth auth) {
+        this.nickname = nickname;
         this.auth = auth;
     }
 
-    public static Member of(String username, Auth auth) {
+    public static Member of(String nickname, Auth auth) {
         return Member.builder()
-                .username(username)
+                .nickname(nickname)
                 .auth(auth)
                 .build();
     }
