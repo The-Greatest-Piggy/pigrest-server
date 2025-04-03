@@ -7,9 +7,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -17,11 +20,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Auth {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @JdbcTypeCode(SqlTypes.BINARY)
+    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
-    private String username;
+    private String username; // 사용자가 정의하는 인증용 아이디
 
     @Column(nullable = false)
     private String password;
@@ -32,9 +37,12 @@ public class Auth {
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; // 비밀번호 변경 시
 
-    @OneToOne(mappedBy = "auth", cascade = CascadeType.ALL)
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt; // soft delete
+
+    @OneToOne(mappedBy = "auth")
     private Member member;
 
     @Builder(access = AccessLevel.PRIVATE)
