@@ -35,10 +35,12 @@ public class AuthService {
         return member;
     }
 
-    public void login(LoginRequest request) {
+    public Authentication login(LoginRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return authentication;
     }
 }

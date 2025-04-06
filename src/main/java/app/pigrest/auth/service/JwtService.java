@@ -3,7 +3,7 @@ package app.pigrest.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +13,14 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
-@ConfigurationProperties(prefix = "jwt")
 public class JwtService {
+    @Value("${jwt.secret-key}")
     private String secretKey;
+
+    @Value("${jwt.access-token-expiration}")
     private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
     private SecretKey getSigningKey() {
