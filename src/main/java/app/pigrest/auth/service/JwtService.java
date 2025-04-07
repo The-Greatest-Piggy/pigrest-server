@@ -93,4 +93,8 @@ public class JwtService {
             throw new JwtException("Malformed refresh token", e);
         }
     }
+
+    public void revokeRefreshToken(String token) {
+        redisService.deleteValue(REFRESH_TOKEN_PREFIX + token);
+    }
 }

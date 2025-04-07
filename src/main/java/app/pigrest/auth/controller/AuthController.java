@@ -9,6 +9,8 @@ import app.pigrest.common.ApiStatusCode;
 import app.pigrest.member.model.Member;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -17,10 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 @Slf4j
 @RestController
@@ -30,6 +31,8 @@ public class AuthController {
     private final AuthService authService;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request) {
@@ -50,7 +53,7 @@ public class AuthController {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -62,8 +65,29 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(ApiResponse.success(
                         ApiStatusCode.OK,
-                        "Login successful",
+                        "Login success",
                         LoginResponse.of(accessToken, userDetails.getUsername())
                 ));
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+        String refreshToken = Arrays.stream(request.getCookies())
+                .filter(c -> c.getName().equals(REFRESH_TOKEN_COOKIE_NAME))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
+        if (refreshToken != null) {
+            jwtService.revokeRefreshToken(refreshToken);
+        }
+
+        ResponseCookie deleteCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, null)
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(ApiResponse.success(ApiStatusCode.OK, "Logout success", null));
     }
 }
