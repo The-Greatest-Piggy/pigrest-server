@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -72,14 +73,12 @@ public class AuthController {
 
     @GetMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
-        String refreshToken = Arrays.stream(request.getCookies())
-                .filter(c -> c.getName().equals(REFRESH_TOKEN_COOKIE_NAME))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
-        if (refreshToken != null) {
-            jwtService.revokeRefreshToken(refreshToken);
-        }
+        Optional.ofNullable(request.getCookies())
+                .flatMap(cookies -> Arrays.stream(cookies)
+                    .filter(c -> c.getName().equals(REFRESH_TOKEN_COOKIE_NAME))
+                    .findFirst()
+                    .map(Cookie::getValue))
+                .ifPresent(jwtService::revokeRefreshToken);
 
         ResponseCookie deleteCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, null)
                 .path("/")
