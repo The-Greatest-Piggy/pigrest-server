@@ -89,4 +89,23 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .body(ApiResponse.success(ApiStatusCode.OK, "Logout success", null));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refresh(HttpServletRequest request) {
+        String refreshToken = Optional.ofNullable(request.getCookies())
+                .flatMap(cookies -> Arrays.stream(cookies)
+                        .filter(c -> c.getName().equals(REFRESH_TOKEN_COOKIE_NAME))
+                        .findFirst()
+                        .map(Cookie::getValue))
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token missing"));
+        String username = jwtService.validateRefreshToken(refreshToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        String newAccessToken = jwtService.generateAccessToken(userDetails);
+        return ResponseEntity.ok(ApiResponse.success(
+                ApiStatusCode.OK,
+                "Token refreshed",
+                LoginResponse.of(newAccessToken, username)
+        ));
+    }
 }
