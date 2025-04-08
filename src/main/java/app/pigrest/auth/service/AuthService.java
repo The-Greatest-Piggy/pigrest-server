@@ -1,5 +1,6 @@
 package app.pigrest.auth.service;
 
+import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.model.Auth;
@@ -42,5 +43,9 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return authentication;
+    }
+
+    public boolean checkUsername(CheckUsernameRequest request) {
+        return !authRepository.existsByUsername(request.getUsername());
     }
 }

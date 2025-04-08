@@ -1,6 +1,8 @@
 package app.pigrest.auth.controller;
 
+import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
+import app.pigrest.auth.dto.response.CheckUsernameResponse;
 import app.pigrest.auth.dto.response.LoginResponse;
 import app.pigrest.auth.dto.response.RegisterResponse;
 import app.pigrest.auth.service.JwtService;
@@ -106,6 +108,16 @@ public class AuthController {
                 ApiStatusCode.OK,
                 "Token refreshed",
                 LoginResponse.of(newAccessToken, username)
+        ));
+    }
+
+    @PostMapping("/check-username")
+    public ResponseEntity<ApiResponse<CheckUsernameResponse>> checkUsername(@Valid @RequestBody CheckUsernameRequest request) {
+        boolean isAvailable = authService.checkUsername(request);
+        return ResponseEntity.ok(ApiResponse.success(
+                ApiStatusCode.OK,
+                isAvailable ? "Username is available" : "Username is already in use",
+                CheckUsernameResponse.of(isAvailable)
         ));
     }
 }
