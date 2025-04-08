@@ -1,11 +1,13 @@
 package app.pigrest.auth.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
 public class LoginRequest {
-    // TODO: 유효성 검증
-    // TODO: record 변경 여부 확인
+    @NotBlank(message = "Username must not be blank")
     private String username;
+
+    @NotBlank(message = "Password must not be blank")
     private String password;
 }

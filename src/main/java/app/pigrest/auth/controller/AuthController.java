@@ -11,6 +11,7 @@ import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -36,9 +37,8 @@ public class AuthController {
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
         Member member = authService.create(request);
-        // TODO: 실패 케이스 - RegisterRequest에 유효성 검사 관련 처리 추가
         return ResponseEntity.ok(
                 ApiResponse.success(
                         ApiStatusCode.CREATED,
@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         Authentication auth = authService.login(request);
         UserDetails userDetails = userDetailsService.loadUserByUsername(auth.getName());
 
