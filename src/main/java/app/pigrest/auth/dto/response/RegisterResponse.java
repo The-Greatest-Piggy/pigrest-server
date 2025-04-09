@@ -2,8 +2,6 @@ package app.pigrest.auth.dto.response;
 
 import app.pigrest.member.model.Member;
 
-import java.util.UUID;
-
 public record RegisterResponse(
         String username
 ) {

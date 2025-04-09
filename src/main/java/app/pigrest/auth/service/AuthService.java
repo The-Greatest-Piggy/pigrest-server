@@ -28,11 +28,11 @@ public class AuthService {
     public Member create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
-        authRepository.save(auth);
-
         Member member = Member.of(request.getUsername(), auth);
-        memberRepository.save(member);
+        auth.setMember(member);
 
+        authRepository.save(auth);
+        memberRepository.save(member);
         return member;
     }
 

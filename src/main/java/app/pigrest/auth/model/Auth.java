@@ -1,15 +1,11 @@
 package app.pigrest.auth.model;
 
 import app.pigrest.member.model.Member;
+import com.fasterxml.uuid.Generators;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,16 +13,18 @@ import java.util.UUID;
 @Getter
 @Entity
 @Table(name = "auth")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Auth {
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.BINARY)
-    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
+    @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Setter
+    @OneToOne(mappedBy = "auth", cascade = CascadeType.ALL)
+    private Member member;
+
     @Column(unique = true, nullable = false)
-    private String username; // 사용자가 정의하는 인증용 아이디
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -42,11 +40,9 @@ public class Auth {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt; // soft delete
 
-    @OneToOne(mappedBy = "auth")
-    private Member member;
-
     @Builder(access = AccessLevel.PRIVATE)
     public Auth(String username, String password) {
+        this.id = Generators.timeBasedEpochRandomGenerator().generate();
         this.username = username;
         this.password = password;
     }
