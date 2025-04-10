@@ -1,0 +1,27 @@
+# 테스트
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pigrest-server
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop # 테스트 종료 시 DB 삭제
+
+logging:
+  level:
+    root: info
+    app.pigrest: debug
+
+jwt:
+  secret-key: the-best-piggy-is-pickles-who-is-cutest-piggy-ever
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
