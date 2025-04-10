@@ -1,5 +1,6 @@
 package app.pigrest.content.controller;
 
+import app.pigrest.auth.service.JwtService;
 import app.pigrest.content.model.Pin;
 import app.pigrest.content.service.PinService;
 import com.epages.restdocs.apispec.ResourceDocumentation;
@@ -32,6 +33,9 @@ class PinControllerTest {
 
     @MockBean
     private PinService pinService;
+
+    @MockBean
+    private JwtService jwtService; // 의존성 충족
 
     @Test
     @WithMockUser(username = "testUser", roles = "USER")
