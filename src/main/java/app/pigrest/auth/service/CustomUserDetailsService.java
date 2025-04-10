@@ -22,11 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         Auth auth = authRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
 
-        return CustomUser.builder()
-                .username(auth.getUsername())
-                .password(auth.getPassword())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
-                .id(auth.getId())
-                .build();
+        return new CustomUser(auth.getUsername(),
+                auth.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")),
+                auth.getId());
     }
 }
