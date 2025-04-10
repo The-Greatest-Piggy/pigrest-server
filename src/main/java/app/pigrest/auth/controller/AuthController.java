@@ -40,6 +40,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        boolean isAvailable = authService.checkUsername(request.getUsername());
+        if (!isAvailable) {
+            // TODO: Exception 변경
+            throw new IllegalArgumentException("Username is already in use");
+        }
+
         Member member = authService.create(request);
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -113,7 +119,7 @@ public class AuthController {
 
     @PostMapping("/check-username")
     public ResponseEntity<ApiResponse<CheckUsernameResponse>> checkUsername(@Valid @RequestBody CheckUsernameRequest request) {
-        boolean isAvailable = authService.checkUsername(request);
+        boolean isAvailable = authService.checkUsername(request.getUsername());
         return ResponseEntity.ok(ApiResponse.success(
                 ApiStatusCode.OK,
                 isAvailable ? "Username is available" : "Username is already in use",

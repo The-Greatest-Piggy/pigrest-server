@@ -45,7 +45,7 @@ public class AuthService {
         return authentication;
     }
 
-    public boolean checkUsername(CheckUsernameRequest request) {
-        return !authRepository.existsByUsername(request.getUsername());
+    public boolean checkUsername(String username) {
+        return !authRepository.existsByUsername(username);
     }
 }
