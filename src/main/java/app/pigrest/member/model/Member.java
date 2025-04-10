@@ -6,42 +6,40 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
 @Getter
 @Entity
 @Table(name = "member")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.BINARY)
-    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
-    private UUID id; // TODO: UUID 버전 변경 예정
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id;
 
-    @Column(nullable = false)
-    private String username;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
-    @OneToOne
-    @JoinColumn(name = "auth_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "id")
     private Auth auth;
 
+    @Column(nullable = false)
+    private String nickname; // 닉네임
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @Builder(access = AccessLevel.PRIVATE)
-    public Member(String username, Auth auth) {
-        this.username = username;
+    public Member(String nickname, Auth auth) {
+        this.id = auth.getId();
         this.auth = auth;
+        this.nickname = nickname;
     }
 
-    public static Member of(String username, Auth auth) {
+    public static Member of(String nickname, Auth auth) {
         return Member.builder()
-                .username(username)
                 .auth(auth)
+                .nickname(nickname)
                 .build();
     }
 }

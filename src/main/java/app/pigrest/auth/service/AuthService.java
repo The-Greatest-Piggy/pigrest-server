@@ -1,5 +1,6 @@
 package app.pigrest.auth.service;
 
+import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.model.Auth;
@@ -27,18 +28,24 @@ public class AuthService {
     public Member create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
-        authRepository.save(auth);
-
         Member member = Member.of(request.getUsername(), auth);
-        memberRepository.save(member);
+        auth.setMember(member);
 
+        authRepository.save(auth);
+        memberRepository.save(member);
         return member;
     }
 
-    public void login(LoginRequest request) {
+    public Authentication login(LoginRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return authentication;
+    }
+
+    public boolean checkUsername(String username) {
+        return !authRepository.existsByUsername(username);
     }
 }
