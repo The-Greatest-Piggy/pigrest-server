@@ -29,6 +29,7 @@ jobs:
             --build-arg DB_URL=${{ secrets.DB_URL }} \
             --build-arg DB_USERNAME=${{ secrets.DB_USERNAME }} \
             --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --build-arg JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
             -t pigrest-server .
           docker tag pigrest-server:latest ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
           docker push ${{ secrets.AWS_ECR_URI }}/pigrest-server:latest
