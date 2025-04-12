@@ -25,6 +25,6 @@ springdoc:
     url: /openapi3.yaml
 
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret-key: ${JWT_SECRET_KEY}
   access-token-expiration: 3600000
   refresh-token-expiration: 604800000
