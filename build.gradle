@@ -52,16 +52,19 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+tasks.named('build') {
+	dependsOn tasks.named('openapi3')
+}
+
 tasks.named('test') {
 	outputs.dir snippetsDir
 	useJUnitPlatform()
 }
 
 openapi3 {
-	server = 'localhost:8080'
+	server = 'http://localhost:8080'
 	title = 'Pigrest API'
 	description = 'Pigrest API description'
-//	tagDescriptionsPropertiesFile = '/src/docs/tag-descriptions.yaml'
 	outputDirectory = "src/main/resources/public"
 	version = '0.1.0'
 	format = 'yaml'
