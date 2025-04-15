@@ -19,6 +19,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.ok(ApiResponse.error(ex.getStatusCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateResourceException(DuplicateResourceException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ex.getStatusCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
