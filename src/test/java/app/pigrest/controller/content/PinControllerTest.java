@@ -1,6 +1,7 @@
-package app.pigrest.content.controller;
+package app.pigrest.controller.content;
 
 import app.pigrest.auth.service.JwtService;
+import app.pigrest.content.controller.PinController;
 import app.pigrest.content.model.Pin;
 import app.pigrest.content.service.PinService;
 import com.epages.restdocs.apispec.ResourceDocumentation;
@@ -16,7 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -42,7 +43,7 @@ class PinControllerTest {
     public void getPinTest() throws Exception {
         Pin pin = new Pin(1L, "Test Pin"); // 가짜 데이터 생성
 
-        when(pinService.getPinById(1L)).thenReturn(pin); // Service 동작 정의
+        given(pinService.getPinById(1L)).willReturn(pin); // Service 동작 정의
 
         mockMvc.perform(get("/pins/{id}", 1))
                 .andExpect(status().isOk())
