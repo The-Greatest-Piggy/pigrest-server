@@ -24,10 +24,18 @@ public class RegisterDocs {
     public static ResourceSnippetParameters success() {
         return ResourceSnippetParameters.builder()
                 .summary("회원 등록")
-                .tags("register")
+                .tag("register")
                 .description("회원 등록 성공 시, username을 반환합니다.")
                 .requestFields(REQUEST_FIELDS)
                 .responseFields(ApiResponseDocs.withDataFields(RESPONSE_FIELDS))
+                .build();
+    }
+
+    public static ResourceSnippetParameters fail() {
+        return ResourceSnippetParameters.builder()
+                .tag("register")
+                .requestFields(REQUEST_FIELDS)
+                .responseFields(ApiResponseDocs.COMMON_RESPONSE_FIELDS)
                 .build();
     }
 }
