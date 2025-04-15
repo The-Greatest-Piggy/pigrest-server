@@ -1,6 +1,5 @@
 package app.pigrest.auth.service;
 
-import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.model.Auth;
@@ -25,7 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Member create(RegisterRequest request) {
+    public Auth create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
         Member member = Member.of(request.getUsername(), auth);
@@ -33,7 +32,7 @@ public class AuthService {
 
         authRepository.save(auth);
         memberRepository.save(member);
-        return member;
+        return auth;
     }
 
     public Authentication login(LoginRequest request) {

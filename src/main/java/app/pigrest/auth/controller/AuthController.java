@@ -5,10 +5,10 @@ import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.response.CheckUsernameResponse;
 import app.pigrest.auth.dto.response.LoginResponse;
 import app.pigrest.auth.dto.response.RegisterResponse;
+import app.pigrest.auth.model.Auth;
 import app.pigrest.auth.service.JwtService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
-import app.pigrest.member.model.Member;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -46,12 +46,12 @@ public class AuthController {
             throw new IllegalArgumentException("Username is already in use");
         }
 
-        Member member = authService.create(request);
+        Auth auth = authService.create(request);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         ApiStatusCode.CREATED,
                         "Member registered successfully",
-                        RegisterResponse.from(member)));
+                        RegisterResponse.from(auth)));
     }
 
     @PostMapping("/login")
