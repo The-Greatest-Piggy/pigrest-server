@@ -39,4 +39,11 @@ public class LoginDocs {
                 .build();
     }
 
+    public static ResourceSnippetParameters fail() {
+        return ResourceSnippetParameters.builder()
+                .tag("login")
+                .requestFields(REQUEST_FIELDS)
+                .responseFields(ApiResponseDocs.COMMON_RESPONSE_FIELDS)
+                .build();
+    }
 }

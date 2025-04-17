@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -104,5 +105,20 @@ class AuthControllerTest extends BasicControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("refresh_token"))
                 .andDo(document("login-success", resource(LoginDocs.success())));
+    }
+
+    @Test
+    public void loginFail() throws Exception {
+        LoginRequest request = new LoginRequest("do_noni", "noni");
+        Authentication auth = mock(Authentication.class);
+
+        given(authService.login(any(LoginRequest.class)))
+                .willThrow(new BadCredentialsException("Id or password is incorrect"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("login-fail", resource(LoginDocs.fail())));
     }
 }
