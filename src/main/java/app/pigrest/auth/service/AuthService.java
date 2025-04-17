@@ -8,6 +8,7 @@ import app.pigrest.member.model.Member;
 import app.pigrest.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,12 +37,16 @@ public class AuthService {
     }
 
     public Authentication login(LoginRequest request) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return authentication;
+            return authentication;
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Id or password is incorrect");
+        }
     }
 
     public boolean checkUsername(String username) {
