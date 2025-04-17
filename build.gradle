@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
-	id 'com.epages.restdocs-api-spec' version '0.18.2'
+	id 'com.epages.restdocs-api-spec' version '0.19.1'
 }
 
 group = 'app'
@@ -46,19 +46,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc' // Spring REST Docs: `.adoc` 형식 문서 생성
 	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.1' // 테스트 실행 시 OpenAPI 문서 만들기 위한 API 정보 수집
-//	testImplementation 'com.epages:restdocs-api-spec-openapi3-generator:0.19.1' // OpenAPI 3.0 형식(JSON/YAML)으로 변환
 
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('build') {
-	dependsOn tasks.named('openapi3')
-}
-
-tasks.named('test') {
-	outputs.dir snippetsDir
-	useJUnitPlatform()
 }
 
 openapi3 {
@@ -68,6 +58,37 @@ openapi3 {
 	outputDirectory = "src/main/resources/public"
 	version = '0.1.0'
 	format = 'yaml'
+}
+
+tasks.register('bearerAuthentication') {
+	mustRunAfter tasks.named('openapi3')
+	doLast {
+		def apiSpecFile = file('src/main/resources/public/openapi3.yaml')
+		def contentToAdd =
+				"  securitySchemes:\n" +
+						"    bearerAuth:\n" +
+						"      type: http\n" +
+						"      scheme: bearer\n" +
+						"      bearerFormat: JWT\n" +
+						"\n" +
+						"security:\n" +
+						"  - bearerAuth: []"
+		def existingContent = apiSpecFile.text
+		def updatedContent = existingContent + contentToAdd
+		apiSpecFile.withWriter('UTF-8') {
+			writer -> writer.write(updatedContent)
+		}
+	}
+}
+
+tasks.named('build') {
+	dependsOn tasks.named('openapi3')
+	dependsOn tasks.named('bearerAuthentication')
+}
+
+tasks.named('test') {
+	outputs.dir snippetsDir
+	useJUnitPlatform()
 }
 
 postman {
