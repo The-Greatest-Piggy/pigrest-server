@@ -2,7 +2,7 @@ package app.pigrest.controller.auth;
 
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.model.CustomUser;
-import app.pigrest.common.BasicControllerTest;
+import app.pigrest.common.BaseControllerTest;
 import app.pigrest.auth.controller.AuthController;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.dto.response.RegisterResponse;
@@ -34,7 +34,7 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-class AuthControllerTest extends BasicControllerTest {
+class AuthControllerTest extends BaseControllerTest {
     @MockBean
     private AuthService authService;
 
