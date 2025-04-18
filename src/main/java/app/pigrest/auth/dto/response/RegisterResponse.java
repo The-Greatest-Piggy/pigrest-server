@@ -1,11 +1,11 @@
 package app.pigrest.auth.dto.response;
 
-import app.pigrest.member.model.Member;
+import app.pigrest.auth.model.Auth;
 
 public record RegisterResponse(
         String username
 ) {
-    public static RegisterResponse from(Member member) {
-        return new RegisterResponse(member.getNickname());
+    public static RegisterResponse from(Auth auth) {
+        return new RegisterResponse(auth.getUsername());
     }
 }

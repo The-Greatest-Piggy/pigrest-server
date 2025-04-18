@@ -1,12 +1,15 @@
 package app.pigrest.auth.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "Username must not be blank")
     @Size(min = 4, max = 16, message = "Username must be between 4 and 16 characters")
@@ -26,6 +29,7 @@ public class RegisterRequest {
     @Size(min = 4, max = 12, message = "Nickname must be between 4 and 12 characters")
     private String nickname;
 
+    @JsonIgnore
     @AssertTrue(message = "Password and confirmation must match")
     public boolean isPasswordMatching() {
         return password != null && password.equals(passwordConfirm);

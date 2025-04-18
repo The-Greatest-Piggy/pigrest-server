@@ -5,12 +5,13 @@ import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.response.CheckUsernameResponse;
 import app.pigrest.auth.dto.response.LoginResponse;
 import app.pigrest.auth.dto.response.RegisterResponse;
+import app.pigrest.auth.model.Auth;
 import app.pigrest.auth.service.JwtService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
-import app.pigrest.member.model.Member;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
+import app.pigrest.exception.DuplicateResourceException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -42,16 +43,15 @@ public class AuthController {
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
         boolean isAvailable = authService.checkUsername(request.getUsername());
         if (!isAvailable) {
-            // TODO: Exception 변경
-            throw new IllegalArgumentException("Username is already in use");
+            throw new DuplicateResourceException("Username is already in use");
         }
 
-        Member member = authService.create(request);
+        Auth auth = authService.create(request);
         return ResponseEntity.ok(
                 ApiResponse.success(
                         ApiStatusCode.CREATED,
                         "Member registered successfully",
-                        RegisterResponse.from(member)));
+                        RegisterResponse.from(auth)));
     }
 
     @PostMapping("/login")

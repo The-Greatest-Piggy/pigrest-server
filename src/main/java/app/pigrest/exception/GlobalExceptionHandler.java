@@ -2,7 +2,9 @@ package app.pigrest.exception;
 
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +21,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.ok(ApiResponse.error(ex.getStatusCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateResourceException(DuplicateResourceException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ex.getStatusCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
@@ -26,6 +34,12 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ApiStatusCode.VALIDATION_ERROR, message));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ApiStatusCode.UNAUTHORIZED, ex.getMessage()));
     }
 
     // 그 외 모든 예외에 대해 처리 (예: NullPointerException, 기타 예상치 못한 예외)
