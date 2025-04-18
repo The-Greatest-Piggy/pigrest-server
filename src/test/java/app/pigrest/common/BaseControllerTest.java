@@ -1,7 +1,10 @@
 package app.pigrest.common;
 
+import app.pigrest.auth.model.Auth;
+import app.pigrest.auth.repository.AuthRepository;
 import app.pigrest.auth.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +21,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 
 @AutoConfigureRestDocs
 @ExtendWith(RestDocumentationExtension.class)
-public class BasicControllerTest {
+public class BaseControllerTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
@@ -37,5 +40,10 @@ public class BasicControllerTest {
                 .apply(documentationConfiguration(restDocumentation).operationPreprocessors()
                         .withResponseDefaults())
                 .build();
+    }
+
+    @BeforeAll
+    public static void setupDefaultUser(@Autowired AuthRepository authRepository) {
+        authRepository.save(Auth.of("testUser", "password"));
     }
 }
