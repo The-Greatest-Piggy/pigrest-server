@@ -7,7 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -23,22 +23,22 @@ public class Auth {
     @OneToOne(mappedBy = "auth", cascade = CascadeType.ALL)
     private Member member;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 64)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 64)
     private String password;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
     @UpdateTimestamp
-    private LocalDateTime updatedAt; // 비밀번호 변경 시
+    private Instant updatedAt; // 비밀번호 변경 시
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt; // soft delete
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
+    private Instant deletedAt; // soft delete
 
     @Builder(access = AccessLevel.PRIVATE)
     public Auth(String username, String password) {

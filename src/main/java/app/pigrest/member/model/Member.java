@@ -23,11 +23,14 @@ public class Member {
     @JoinColumn(name = "id")
     private Auth auth;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 64)
     private String nickname; // 닉네임
 
-    @Column(name = "profile_image_url")
+    @Column(name = "profile_image_url", length = 1024)
     private String profileImageUrl;
+
+    @Column(length = 600) // 한글 기준으로 200자
+    private String description;
 
     @Builder(access = AccessLevel.PRIVATE)
     public Member(String nickname, Auth auth) {
