@@ -11,8 +11,10 @@ import app.pigrest.auth.service.AuthService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
 import app.pigrest.controller.auth.docs.LoginDocs;
+import app.pigrest.controller.auth.docs.LogoutDocs;
 import app.pigrest.controller.auth.docs.RegisterDocs;
 import app.pigrest.exception.DuplicateResourceException;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +31,8 @@ import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -120,5 +123,31 @@ class AuthControllerTest extends BaseControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andDo(document("login-fail", resource(LoginDocs.fail())));
+    }
+
+    @Test
+    public void logoutSuccessWhenRefreshTokenExists() throws Exception {
+        String refreshToken = "refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        mockMvc.perform(get("/auth/logout")
+                    .cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().maxAge("refresh_token", 0))
+                .andDo(document("logout-success-with-refresh-token",
+                        resource(LogoutDocs.success())));
+
+        verify(jwtService).revokeRefreshToken(refreshToken);
+    }
+
+    @Test
+    public void logoutSuccessWhenRefreshTokenDoesNotExist() throws Exception {
+        mockMvc.perform(get("/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().maxAge("refresh_token", 0))
+                .andDo(document("logout-success-without-refresh-token",
+                        resource(LogoutDocs.success())));
+
+        verify(jwtService, never()).revokeRefreshToken(any());
     }
 }
