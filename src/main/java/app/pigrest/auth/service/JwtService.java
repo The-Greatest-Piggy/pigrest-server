@@ -1,9 +1,9 @@
 package app.pigrest.auth.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
+import app.pigrest.common.TokenType;
+import app.pigrest.exception.ExpiredTokenException;
+import app.pigrest.exception.InvalidTokenException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
@@ -65,32 +65,42 @@ public class JwtService {
     }
 
     public String validateAccessToken(String token) {
-        Claims claims = extractClaims(token);
-        if (claims.getExpiration().before(new Date())) {
-            throw new JwtException("Expired access token");
+        try {
+            Claims claims = extractClaims(token);
+            if (claims.getExpiration().before(new Date())) {
+                throw new ExpiredTokenException(TokenType.ACCESS);
+            }
+            return claims.getSubject();
+        } catch (SignatureException e) {
+            throw new InvalidTokenException(TokenType.ACCESS, "Access token has an invalid signature");
+        } catch (MalformedJwtException e) {
+            throw new InvalidTokenException(TokenType.ACCESS, "Access token is malformed");
+        } catch (UnsupportedJwtException e) {
+            throw new InvalidTokenException(TokenType.ACCESS, "Access token is not supported");
         }
-        return claims.getSubject();
     }
 
     public String validateRefreshToken(String token) {
         try {
             Claims claims = extractClaims(token);
             if (claims.getExpiration().before(new Date())) {
-                throw new JwtException("Expired refresh token");
+                throw new ExpiredTokenException(TokenType.REFRESH);
             }
 
             String username = redisService.getValue(REFRESH_TOKEN_PREFIX + token);
             if (username == null) {
-                throw new JwtException("Invalid or revoked refresh token");
+                throw new InvalidTokenException(TokenType.REFRESH, "Refresh token is invalid or has been revoked");
             }
             if (!username.equals(claims.getSubject())) {
-                throw new JwtException("Refresh token mismatch");
+                throw new InvalidTokenException(TokenType.REFRESH, "Refresh token does not match the expected user");
             }
             return username;
         } catch (SignatureException e) {
-            throw new JwtException("Invalid refresh token signature", e);
+            throw new InvalidTokenException(TokenType.REFRESH, "Refresh token has an invalid signature");
         } catch (MalformedJwtException e) {
-            throw new JwtException("Malformed refresh token", e);
+            throw new InvalidTokenException(TokenType.REFRESH, "Refresh token is malformed");
+        } catch (UnsupportedJwtException e) {
+            throw new InvalidTokenException(TokenType.REFRESH, "Refresh token is not supported");
         }
     }
 

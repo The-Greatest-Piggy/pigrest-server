@@ -11,7 +11,9 @@ import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.service.AuthService;
+import app.pigrest.common.TokenType;
 import app.pigrest.exception.DuplicateResourceException;
+import app.pigrest.exception.MissingTokenException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -88,7 +90,7 @@ public class AuthController {
                     .map(Cookie::getValue))
                 .ifPresent(jwtService::revokeRefreshToken);
 
-        ResponseCookie deleteCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, null)
+        ResponseCookie deleteCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
@@ -105,7 +107,7 @@ public class AuthController {
                         .filter(c -> c.getName().equals(REFRESH_TOKEN_COOKIE_NAME))
                         .findFirst()
                         .map(Cookie::getValue))
-                .orElseThrow(() -> new IllegalArgumentException("Refresh token missing"));
+                .orElseThrow(() -> new MissingTokenException(TokenType.REFRESH, "Refresh token is missing"));
         String username = jwtService.validateRefreshToken(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

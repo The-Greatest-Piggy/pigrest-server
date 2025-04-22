@@ -1,6 +1,8 @@
 package app.pigrest.config;
 
 import app.pigrest.auth.service.JwtService;
+import app.pigrest.common.TokenType;
+import app.pigrest.exception.MissingTokenException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,14 +31,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            String username = jwtService.validateAccessToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(userDetails, null);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new MissingTokenException(TokenType.ACCESS, "Access token is missing from Authorization Header");
         }
+
+        String token = authHeader.substring(7);
+        String username = jwtService.validateAccessToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userDetails, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);
     }
