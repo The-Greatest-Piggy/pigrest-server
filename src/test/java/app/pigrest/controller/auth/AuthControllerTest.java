@@ -1,5 +1,6 @@
 package app.pigrest.controller.auth;
 
+import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.model.CustomUser;
 import app.pigrest.common.BaseControllerTest;
@@ -10,9 +11,13 @@ import app.pigrest.auth.model.Auth;
 import app.pigrest.auth.service.AuthService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
-import app.pigrest.controller.auth.docs.LoginDocs;
-import app.pigrest.controller.auth.docs.RegisterDocs;
+import app.pigrest.common.TokenType;
+import app.pigrest.controller.auth.docs.*;
 import app.pigrest.exception.DuplicateResourceException;
+import app.pigrest.exception.ExpiredTokenException;
+import app.pigrest.exception.InvalidTokenException;
+import app.pigrest.security.WithMockCustomUser;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 
 import java.util.List;
@@ -29,7 +35,8 @@ import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -120,5 +127,99 @@ class AuthControllerTest extends BaseControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andDo(document("login-fail", resource(LoginDocs.fail())));
+    }
+
+    @Test
+    public void logoutSuccessWhenRefreshTokenExists() throws Exception {
+        String refreshToken = "refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        mockMvc.perform(get("/auth/logout")
+                    .cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().maxAge("refresh_token", 0))
+                .andDo(document("logout-success-with-refresh-token",
+                        resource(LogoutDocs.success())));
+
+        verify(jwtService).revokeRefreshToken(refreshToken);
+    }
+
+    @Test
+    public void logoutSuccessWhenRefreshTokenDoesNotExist() throws Exception {
+        mockMvc.perform(get("/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().maxAge("refresh_token", 0))
+                .andDo(document("logout-success-without-refresh-token",
+                        resource(LogoutDocs.success())));
+
+        verify(jwtService, never()).revokeRefreshToken(any());
+    }
+
+    @Test
+    public void refreshSuccess() throws Exception {
+        String username = "ddo_nonii";
+        String refreshToken = "refresh-token-value";
+        String newAccessToken = "new-access-token-value";
+
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+        UserDetails userDetails = new CustomUser(username, "password", List.of(), null);
+
+        given(jwtService.validateRefreshToken(refreshToken)).willReturn(username);
+        given(userDetailsService.loadUserByUsername(username)).willReturn(userDetails);
+        given(jwtService.generateAccessToken(userDetails)).willReturn(newAccessToken);
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(cookie))
+                .andExpect(status().isOk())
+                .andDo(document("refresh-success", resource(RefreshDocs.success())));
+    }
+
+    @Test
+    public void refreshFailWhenMissingToken() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-missing-token", resource(RefreshDocs.fail())));
+    }
+
+    @Test
+    public void refreshFailWhenInvalidToken() throws Exception {
+        String refreshToken = "invalid-refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        given(jwtService.validateRefreshToken(refreshToken))
+                .willThrow(new InvalidTokenException(TokenType.REFRESH, "Refresh token has an invalid signature"));
+
+        mockMvc.perform(post("/auth/refresh")
+                    .cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-invalid-token", resource(RefreshDocs.fail())));
+    }
+
+    @Test
+    public void refreshFailWhenExpiredToken() throws Exception {
+        String refreshToken = "expired-refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        given(jwtService.validateRefreshToken(refreshToken))
+                .willThrow(new ExpiredTokenException(TokenType.REFRESH));
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-expired-token", resource(RefreshDocs.fail())));
+
+    }
+
+    @Test
+    public void checkUsernameSuccess() throws Exception {
+        CheckUsernameRequest request = new CheckUsernameRequest("ddo_nonii");
+
+        given(authService.checkUsername(request.getUsername())).willReturn(true);
+
+        mockMvc.perform(post("/auth/check-username")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(document("check-username-success", resource(CheckUsernameDocs.success())));
     }
 }

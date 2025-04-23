@@ -16,7 +16,7 @@ public enum ApiStatusCode {
 
     // 401: 인증 오류
     UNAUTHORIZED(401, "UNAUTHORIZED"),
-    TOKEN_EXPIRED(401, "TOKEN_EXPIRED"),
+    INVALID_TOKEN(401, "INVALID_TOKEN"),
 
     // 403: 권한 오류
     FORBIDDEN(403, "FORBIDDEN"),

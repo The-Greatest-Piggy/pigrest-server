@@ -2,7 +2,11 @@ package app.pigrest.exception;
 
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
+import app.pigrest.common.TokenType;
+import io.jsonwebtoken.JwtException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +23,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException ex) {
         // 예외 객체에 포함된 ApiStatusCode와 메시지를 이용해 에러 응답 생성
         return ResponseEntity.ok(ApiResponse.error(ex.getStatusCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler({ InvalidTokenException.class, ExpiredTokenException.class })
+    public ResponseEntity<ApiResponse<Object>> handleTokenException(CustomJwtException ex) {
+        if (ex.getTokenType().equals(TokenType.REFRESH)) {
+            ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                    .body(ApiResponse.error(ApiStatusCode.INVALID_TOKEN, ex.getMessage()));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ApiStatusCode.INVALID_TOKEN, ex.getMessage()));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Object>> handleJwtException(JwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ApiStatusCode.INVALID_TOKEN, ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
