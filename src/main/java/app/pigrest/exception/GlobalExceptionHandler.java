@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ApiStatusCode.INVALID_TOKEN, ex.getMessage()));
     }
 
-    @ExceptionHandler()
+    @ExceptionHandler(JwtException.class)
     public ResponseEntity<ApiResponse<Object>> handleJwtException(JwtException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ApiStatusCode.INVALID_TOKEN, ex.getMessage()));

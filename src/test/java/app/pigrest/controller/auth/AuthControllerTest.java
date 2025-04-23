@@ -10,11 +10,14 @@ import app.pigrest.auth.model.Auth;
 import app.pigrest.auth.service.AuthService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
+import app.pigrest.common.TokenType;
 import app.pigrest.controller.auth.docs.LoginDocs;
 import app.pigrest.controller.auth.docs.LogoutDocs;
 import app.pigrest.controller.auth.docs.RefreshDocs;
 import app.pigrest.controller.auth.docs.RegisterDocs;
 import app.pigrest.exception.DuplicateResourceException;
+import app.pigrest.exception.ExpiredTokenException;
+import app.pigrest.exception.InvalidTokenException;
 import app.pigrest.security.WithMockCustomUser;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
@@ -170,5 +173,41 @@ class AuthControllerTest extends BaseControllerTest {
                         .cookie(cookie))
                 .andExpect(status().isOk())
                 .andDo(document("refresh-success", resource(RefreshDocs.success())));
+    }
+
+    @Test
+    public void refreshFailWhenMissingToken() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-missing-token", resource(RefreshDocs.fail())));
+    }
+
+    @Test
+    public void refreshFailWhenInvalidToken() throws Exception {
+        String refreshToken = "invalid-refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        given(jwtService.validateRefreshToken(refreshToken))
+                .willThrow(new InvalidTokenException(TokenType.REFRESH, "Refresh token has an invalid signature"));
+
+        mockMvc.perform(post("/auth/refresh")
+                    .cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-invalid-token", resource(RefreshDocs.fail())));
+    }
+
+    @Test
+    public void refreshFailWhenExpiredToken() throws Exception {
+        String refreshToken = "expired-refresh-token-value";
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+
+        given(jwtService.validateRefreshToken(refreshToken))
+                .willThrow(new ExpiredTokenException(TokenType.REFRESH));
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(cookie))
+                .andExpect(status().isUnauthorized())
+                .andDo(document("refresh-fail-expired-token", resource(RefreshDocs.fail())));
+
     }
 }

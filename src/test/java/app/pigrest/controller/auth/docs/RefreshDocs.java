@@ -20,7 +20,7 @@ public class RefreshDocs {
                 .summary("토큰 재발급")
                 .description("Access Token 만료 시, Cookie에 저장되어 있는 Refresh Token을 활용하여 토큰을 재발급할 수 있습니다.<br>" +
                         "Cookie에 저장된 Refresh Token이 유효하다면 Access Token을 재발급해줍니다.<br>" +
-                        "유효하지 않은 토큰이거나 Refresh token이 쿠키에 존재하지 않는다면 401 상태 코드가 반환됩니다.")
+                        "(1)만료된 토큰 (2)유효하지 않은 토큰 (3)Refresh token이 쿠키에 존재하지 않은 경우, 401 상태 코드가 반환됩니다.")
                 .responseFields(ApiResponseDocs.withDataFields(RESPONSE_FIELDS))
                 .build();
     }
