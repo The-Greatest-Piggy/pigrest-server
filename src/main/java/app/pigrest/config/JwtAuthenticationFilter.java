@@ -16,16 +16,28 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final List<String> whiteListUrls = List.of(
+            "/v3/api-docs/",
+            "/openapi3.yaml",
+            "/swagger-ui",
+            "/auth"
+    );
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    private boolean isWhitelistedUrl(String servletPath) {
+        return whiteListUrls.stream().anyMatch(servletPath::contains);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getServletPath().contains("/auth")) {
+        if (isWhitelistedUrl(request.getServletPath())) {
             filterChain.doFilter(request, response);
             return;
         }

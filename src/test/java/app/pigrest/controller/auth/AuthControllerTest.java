@@ -12,8 +12,10 @@ import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
 import app.pigrest.controller.auth.docs.LoginDocs;
 import app.pigrest.controller.auth.docs.LogoutDocs;
+import app.pigrest.controller.auth.docs.RefreshDocs;
 import app.pigrest.controller.auth.docs.RegisterDocs;
 import app.pigrest.exception.DuplicateResourceException;
+import app.pigrest.security.WithMockCustomUser;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -149,5 +151,24 @@ class AuthControllerTest extends BaseControllerTest {
                         resource(LogoutDocs.success())));
 
         verify(jwtService, never()).revokeRefreshToken(any());
+    }
+
+    @Test
+    public void refreshSuccess() throws Exception {
+        String username = "ddo_nonii";
+        String refreshToken = "refresh-token-value";
+        String newAccessToken = "new-access-token-value";
+
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+        UserDetails userDetails = new CustomUser(username, "password", List.of(), null);
+
+        given(jwtService.validateRefreshToken(refreshToken)).willReturn(username);
+        given(userDetailsService.loadUserByUsername(username)).willReturn(userDetails);
+        given(jwtService.generateAccessToken(userDetails)).willReturn(newAccessToken);
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(cookie))
+                .andExpect(status().isOk())
+                .andDo(document("refresh-success", resource(RefreshDocs.success())));
     }
 }
