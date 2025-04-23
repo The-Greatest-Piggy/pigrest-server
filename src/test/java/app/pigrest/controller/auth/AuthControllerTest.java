@@ -1,5 +1,6 @@
 package app.pigrest.controller.auth;
 
+import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.model.CustomUser;
 import app.pigrest.common.BaseControllerTest;
@@ -11,10 +12,7 @@ import app.pigrest.auth.service.AuthService;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
 import app.pigrest.common.TokenType;
-import app.pigrest.controller.auth.docs.LoginDocs;
-import app.pigrest.controller.auth.docs.LogoutDocs;
-import app.pigrest.controller.auth.docs.RefreshDocs;
-import app.pigrest.controller.auth.docs.RegisterDocs;
+import app.pigrest.controller.auth.docs.*;
 import app.pigrest.exception.DuplicateResourceException;
 import app.pigrest.exception.ExpiredTokenException;
 import app.pigrest.exception.InvalidTokenException;
@@ -27,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 
 import java.util.List;
@@ -209,5 +208,18 @@ class AuthControllerTest extends BaseControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andDo(document("refresh-fail-expired-token", resource(RefreshDocs.fail())));
 
+    }
+
+    @Test
+    public void checkUsernameSuccess() throws Exception {
+        CheckUsernameRequest request = new CheckUsernameRequest("ddo_nonii");
+
+        given(authService.checkUsername(request.getUsername())).willReturn(true);
+
+        mockMvc.perform(post("/auth/check-username")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(document("check-username-success", resource(CheckUsernameDocs.success())));
     }
 }
