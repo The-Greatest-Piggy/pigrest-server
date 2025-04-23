@@ -31,7 +31,6 @@ public class LoginDocs {
     public static ResourceSnippetParameters success() {
         return ResourceSnippetParameters.builder()
                 .summary("로그인")
-                .tag("login")
                 .description("로그인 성공 시, access token과 username을 반환합니다.")
                 .requestFields(REQUEST_FIELDS)
                 .responseHeaders(RESPONSE_HEADERS)
@@ -41,7 +40,6 @@ public class LoginDocs {
 
     public static ResourceSnippetParameters fail() {
         return ResourceSnippetParameters.builder()
-                .tag("login")
                 .requestFields(REQUEST_FIELDS)
                 .responseFields(ApiResponseDocs.COMMON_RESPONSE_FIELDS)
                 .build();
