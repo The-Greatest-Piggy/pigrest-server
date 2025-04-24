@@ -1,0 +1,11 @@
+openapi: 3.0.1
+info:
+  title: Pigrest API
+  description: Pigrest API description
+  version: 0.1.0
+servers:
+- url: localhost:8080
+tags: []
+paths: {}
+components:
+  schemas: {}

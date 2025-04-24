@@ -28,7 +28,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/auth/**",
-                                "/login").permitAll()
+                                "/login",
+                                "/api/pins").permitAll()
                         .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)

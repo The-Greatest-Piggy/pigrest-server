@@ -6,11 +6,40 @@ server:
 spring:
   application:
     name: pigrest-server
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
 
   profiles:
     active: dev
+
+  security:
+    user:
+      name: piggy
+      password: 1234
 
 logging:
   level:
     root: info
     app.pigrest: debug
+    org.hibernate.SQL: debug  # SQL 쿼리는 출력
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    url: /openapi3.yaml
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: 
+      secret-key:
+    region:
+      static: ap-northeast-2 # 원하는 AWS 리전 (서울: ap-northeast-2)
+    s3:
+      bucket: pigrest # 버킷 이름
+      dir: profile
