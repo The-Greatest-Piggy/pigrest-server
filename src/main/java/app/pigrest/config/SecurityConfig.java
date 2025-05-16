@@ -1,7 +1,6 @@
 package app.pigrest.config;
 
 import app.pigrest.auth.service.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

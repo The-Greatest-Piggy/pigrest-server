@@ -2,7 +2,7 @@ FROM amazoncorretto:21 AS builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew build
+RUN ./gradlew clean build -x test
 
 FROM amazoncorretto:21
 WORKDIR /app
