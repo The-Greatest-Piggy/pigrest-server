@@ -1,6 +1,7 @@
 package app.pigrest.config;
 
 import app.pigrest.auth.service.CustomUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,7 @@ public class SecurityConfig {
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            @Qualifier("${spring.profiles.active:dev}CorsSource") CorsConfigurationSource corsConfigurationSource
+            @Qualifier("corsSource") CorsConfigurationSource corsConfigurationSource
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.corsConfigurationSource = corsConfigurationSource;

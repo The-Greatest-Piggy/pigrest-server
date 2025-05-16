@@ -16,7 +16,7 @@ public class CorsConfig {
     @Value("${app.cors.allowed-origin:http://localhost:3000}")
     private String allowedOrigin;
 
-    @Bean
+    @Bean("corsSource")
     @Profile("dev")
     public CorsConfigurationSource devCorsSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -29,7 +29,7 @@ public class CorsConfig {
         return source;
     }
 
-    @Bean
+    @Bean("corsSource")
     @Profile("prod")
     public CorsConfigurationSource prodCorsSource() {
         CorsConfiguration config = new CorsConfiguration();
