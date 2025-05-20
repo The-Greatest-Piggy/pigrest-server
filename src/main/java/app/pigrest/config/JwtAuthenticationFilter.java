@@ -25,19 +25,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/v3/api-docs/",
             "/openapi3.yaml",
             "/swagger-ui",
-            "/auth"
+            "/auth",
+            "/users/"
     );
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    private boolean isWhitelistedUrl(String servletPath) {
-        return whiteListUrls.stream().anyMatch(servletPath::contains);
+    private boolean isWhitelistedRequest(HttpServletRequest request) {
+        String method = request.getMethod();
+        String path = request.getServletPath();
+
+        if (method.equals("GET") && path.matches("^/users/[^/]+$")) {
+            return true;
+        }
+
+        return whiteListUrls.stream().anyMatch(path::contains);
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (isWhitelistedUrl(request.getServletPath())) {
+        if (isWhitelistedRequest(request)) {
             filterChain.doFilter(request, response);
             return;
         }
