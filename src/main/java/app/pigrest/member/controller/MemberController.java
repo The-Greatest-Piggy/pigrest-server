@@ -3,16 +3,16 @@ package app.pigrest.member.controller;
 import app.pigrest.auth.model.CustomUser;
 import app.pigrest.common.ApiResponse;
 import app.pigrest.common.ApiStatusCode;
+import app.pigrest.exception.ForbiddenException;
+import app.pigrest.member.dto.request.UpdateMemberRequest;
 import app.pigrest.member.dto.response.GetMemberResponse;
 import app.pigrest.member.model.Member;
 import app.pigrest.member.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -29,5 +29,17 @@ public class MemberController {
                 "User Profile retrieved successfully",
                 GetMemberResponse.of(member, currentUser)
         ));
+    }
+
+    @PutMapping("/{username}")
+    public ResponseEntity<ApiResponse<Void>> updateProfile(@PathVariable String username,
+                                                        @AuthenticationPrincipal CustomUser currentUser,
+                                                        @Valid @RequestBody UpdateMemberRequest request) {
+        if (!currentUser.getUsername().equals(username)) {
+            throw new ForbiddenException(ApiStatusCode.FORBIDDEN, "No permission to modify this user.");
+        }
+        memberService.updateProfile(username, request);
+
+        return ResponseEntity.ok(ApiResponse.success(ApiStatusCode.OK, "User Profile updated successfully", null));
     }
 }

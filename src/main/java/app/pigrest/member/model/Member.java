@@ -45,4 +45,13 @@ public class Member {
                 .nickname(nickname)
                 .build();
     }
+
+    public void updateProfile(String nickname, String description) {
+        this.nickname = nickname;
+        this.description = description;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+
+    }
 }
