@@ -30,6 +30,10 @@ public class SecurityConfig {
             "/auth/**",
     };
 
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/users/**"
+    };
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
 
@@ -51,7 +55,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(WHITE_LIST_URL).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
+                    .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                     .anyRequest().authenticated())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
