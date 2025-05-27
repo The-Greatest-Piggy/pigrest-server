@@ -8,6 +8,7 @@ import app.pigrest.member.model.Member;
 import app.pigrest.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,21 +25,31 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Member create(RegisterRequest request) {
+    public Auth create(RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Auth auth = Auth.of(request.getUsername(), encodedPassword);
-        authRepository.save(auth);
-
         Member member = Member.of(request.getUsername(), auth);
-        memberRepository.save(member);
+        auth.setMember(member);
 
-        return member;
+        authRepository.save(auth);
+        memberRepository.save(member);
+        return auth;
     }
 
-    public void login(LoginRequest request) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    public Authentication login(LoginRequest request) {
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            return authentication;
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Id or password is incorrect");
+        }
+    }
+
+    public boolean checkUsername(String username) {
+        return !authRepository.existsByUsername(username);
     }
 }
