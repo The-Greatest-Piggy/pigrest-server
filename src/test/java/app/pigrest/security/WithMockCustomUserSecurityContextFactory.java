@@ -1,6 +1,6 @@
 package app.pigrest.security;
 
-import app.pigrest.auth.model.CustomUser;
+import app.pigrest.global.security.CustomUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;

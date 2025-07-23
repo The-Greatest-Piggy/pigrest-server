@@ -1,8 +1,8 @@
 package app.pigrest.auth.service;
 
-import app.pigrest.common.TokenType;
-import app.pigrest.exception.ExpiredTokenException;
-import app.pigrest.exception.InvalidTokenException;
+import app.pigrest.global.common.TokenType;
+import app.pigrest.global.exception.ExpiredTokenException;
+import app.pigrest.global.exception.InvalidTokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;

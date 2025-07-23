@@ -1,7 +1,7 @@
 package app.pigrest.content.service;
 
-import app.pigrest.content.model.Pin;
-import app.pigrest.content.repository.PinRepository;
+import app.pigrest.content.domain.Pin;
+import app.pigrest.content.domain.PinRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

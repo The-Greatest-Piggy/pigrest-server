@@ -1,7 +1,7 @@
 package app.pigrest.content.controller;
 
-import app.pigrest.content.dto.PinResponse;
-import app.pigrest.content.model.Pin;
+import app.pigrest.content.dto.response.PinResponse;
+import app.pigrest.content.domain.Pin;
 import app.pigrest.content.service.PinService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

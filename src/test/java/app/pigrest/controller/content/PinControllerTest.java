@@ -2,7 +2,7 @@ package app.pigrest.controller.content;
 
 import app.pigrest.common.BaseControllerTest;
 import app.pigrest.content.controller.PinController;
-import app.pigrest.content.model.Pin;
+import app.pigrest.content.domain.Pin;
 import app.pigrest.content.service.PinService;
 import app.pigrest.security.WithMockCustomUser;
 import com.epages.restdocs.apispec.ResourceDocumentation;
