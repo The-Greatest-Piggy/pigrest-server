@@ -2,21 +2,20 @@ package app.pigrest.controller.auth;
 
 import app.pigrest.auth.dto.request.CheckUsernameRequest;
 import app.pigrest.auth.dto.request.LoginRequest;
-import app.pigrest.auth.model.CustomUser;
+import app.pigrest.global.security.CustomUser;
 import app.pigrest.common.BaseControllerTest;
 import app.pigrest.auth.controller.AuthController;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.dto.response.RegisterResponse;
-import app.pigrest.auth.model.Auth;
+import app.pigrest.auth.domain.Auth;
 import app.pigrest.auth.service.AuthService;
-import app.pigrest.common.ApiResponse;
-import app.pigrest.common.ApiStatusCode;
-import app.pigrest.common.TokenType;
+import app.pigrest.global.common.ApiResponse;
+import app.pigrest.global.common.ApiStatusCode;
+import app.pigrest.global.common.TokenType;
 import app.pigrest.controller.auth.docs.*;
-import app.pigrest.exception.DuplicateResourceException;
-import app.pigrest.exception.ExpiredTokenException;
-import app.pigrest.exception.InvalidTokenException;
-import app.pigrest.security.WithMockCustomUser;
+import app.pigrest.global.exception.DuplicateResourceException;
+import app.pigrest.global.exception.ExpiredTokenException;
+import app.pigrest.global.exception.InvalidTokenException;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 
 import java.util.List;

@@ -1,13 +1,12 @@
 package app.pigrest.member.dto.response;
 
-import app.pigrest.auth.model.CustomUser;
-import app.pigrest.member.model.Member;
+import app.pigrest.global.security.CustomUser;
+import app.pigrest.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 @Getter
 @Builder(access = AccessLevel.PRIVATE)

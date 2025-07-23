@@ -2,10 +2,10 @@ package app.pigrest.auth.service;
 
 import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.request.RegisterRequest;
-import app.pigrest.auth.model.Auth;
-import app.pigrest.auth.repository.AuthRepository;
-import app.pigrest.member.model.Member;
-import app.pigrest.member.repository.MemberRepository;
+import app.pigrest.auth.domain.Auth;
+import app.pigrest.auth.domain.AuthRepository;
+import app.pigrest.member.domain.Member;
+import app.pigrest.member.domain.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;

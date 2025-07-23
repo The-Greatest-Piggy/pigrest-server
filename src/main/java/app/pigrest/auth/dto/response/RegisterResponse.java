@@ -1,6 +1,6 @@
 package app.pigrest.auth.dto.response;
 
-import app.pigrest.auth.model.Auth;
+import app.pigrest.auth.domain.Auth;
 
 public record RegisterResponse(
         String username

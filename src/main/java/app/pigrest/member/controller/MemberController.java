@@ -1,12 +1,12 @@
 package app.pigrest.member.controller;
 
-import app.pigrest.auth.model.CustomUser;
-import app.pigrest.common.ApiResponse;
-import app.pigrest.common.ApiStatusCode;
-import app.pigrest.exception.ForbiddenException;
+import app.pigrest.global.security.CustomUser;
+import app.pigrest.global.common.ApiResponse;
+import app.pigrest.global.common.ApiStatusCode;
+import app.pigrest.global.exception.ForbiddenException;
 import app.pigrest.member.dto.request.UpdateMemberRequest;
 import app.pigrest.member.dto.response.GetMemberResponse;
-import app.pigrest.member.model.Member;
+import app.pigrest.member.domain.Member;
 import app.pigrest.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

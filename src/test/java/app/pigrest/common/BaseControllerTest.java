@@ -1,6 +1,5 @@
 package app.pigrest.common;
 
-import app.pigrest.auth.model.CustomUser;
 import app.pigrest.auth.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
