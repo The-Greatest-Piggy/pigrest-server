@@ -1,6 +1,7 @@
 package app.pigrest.common;
 
 import app.pigrest.auth.service.JwtService;
+import app.pigrest.global.security.FilterExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,9 @@ public class BaseControllerTest {
 
     @MockBean
     protected UserDetailsService userDetailsService;
+
+    @MockBean
+    protected FilterExceptionHandler filterExceptionHandler;
 
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
