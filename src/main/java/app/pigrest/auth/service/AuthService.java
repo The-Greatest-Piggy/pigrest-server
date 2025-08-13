@@ -4,6 +4,7 @@ import app.pigrest.auth.dto.request.LoginRequest;
 import app.pigrest.auth.dto.request.RegisterRequest;
 import app.pigrest.auth.domain.Auth;
 import app.pigrest.auth.domain.AuthRepository;
+import app.pigrest.content.service.BoardService;
 import app.pigrest.member.domain.Member;
 import app.pigrest.member.domain.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class AuthService {
     private final AuthRepository authRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BoardService boardService;
 
     @Transactional
     public Auth create(RegisterRequest request) {
@@ -33,6 +35,10 @@ public class AuthService {
 
         authRepository.save(auth);
         memberRepository.save(member);
+
+        // TODO: 추후 이벤트 방식으로 리팩토링 고려
+        boardService.createDefaultBoard(member);
+
         return auth;
     }
 
