@@ -4,10 +4,12 @@ import app.pigrest.content.domain.Pin;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class PinResponse {
-    private Long id;
+    private UUID id;
     private String title;
 
     public static PinResponse of(Pin pin) {
