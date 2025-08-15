@@ -7,12 +7,16 @@ import app.pigrest.member.domain.Member;
 
 public class TestDataFactory {
     public static Member createMember() {
-        Auth auth = Auth.of("test_piggy", "encodedPassword");
+        return createMember("test_piggy");
+    }
+
+    public static Member createMember(String username) {
+        Auth auth = Auth.of(username, "encodedPassword");
         return Member.of("piggy", auth);
     }
 
     public static Image createImage() {
-        return Image.of("test");
+        return Image.of("test", "https://s3.amazaon..");
     }
 
     public static Draft createDraft(Member member) {

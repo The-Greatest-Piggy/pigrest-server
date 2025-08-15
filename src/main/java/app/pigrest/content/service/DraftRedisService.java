@@ -7,15 +7,20 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DraftRedisService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final HashOperations<String, String, String> hashOperations;
+
+    public DraftRedisService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.hashOperations = redisTemplate.opsForHash();
+    }
 
     private static final String DRAFT_KEY_PREFIX = "draft:";
     private static final int DRAFT_TTL_MINUTES = 5;
@@ -32,6 +37,11 @@ public class DraftRedisService {
         redisTemplate.expire(key, DRAFT_TTL_MINUTES, TimeUnit.MINUTES);
 
         log.debug("Auto-saved draft to Redis: {}", draft.getId());
+    }
+
+    public Map<String, String> getDraftDataFromRedis(UUID draftId) {
+        String key = generateDraftKey(draftId);
+        return hashOperations.entries(key);
     }
 
     private String generateDraftKey(UUID draftId) {

@@ -3,6 +3,7 @@ package app.pigrest.content.service;
 import app.pigrest.common.TestDataFactory;
 import app.pigrest.content.domain.Draft;
 import app.pigrest.content.domain.DraftRepository;
+import app.pigrest.global.exception.ForbiddenException;
 import app.pigrest.global.exception.ResourceNotFoundException;
 import app.pigrest.member.domain.Member;
 import org.junit.jupiter.api.DisplayName;
@@ -12,13 +13,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -117,5 +121,70 @@ class DraftServiceTest {
         assertThatThrownBy(() -> draftService.autoSave(draftId, member, newTitle, newContent))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Draft Not Found");
+    }
+
+    @Test
+    @DisplayName("임시 저장본 조회 시, 캐시에 있는 경우")
+    void getDraftWithCache_cacheHit() {
+        Member member = TestDataFactory.createMember();
+        UUID draftId = UUID.randomUUID();
+        Map<String, String> cacheData = Map.of(
+                "title", "제목",
+                "content", "내용",
+                "memberId", member.getId().toString(),
+                "imageId", "image-id",
+                "expiresAt", "2025-05-13T23:59:59Z"
+        );
+
+        given(draftRedisService.getDraftDataFromRedis(draftId)).willReturn(cacheData);
+
+        Draft result = draftService.getDraftWithCache(draftId, member);
+
+        assertThat(result.getTitle()).isEqualTo(cacheData.get("title"));
+        assertThat(result.getContent()).isEqualTo(cacheData.get("content"));
+        assertThat(result.getMember()).isEqualTo(member);
+        // TODO: 이미지 추가
+
+        verify(draftRepository, never()).findByIdAndMember(any(), any()); // DB 조회하지 않음
+    }
+
+    @Test
+    @DisplayName("임시 저장본 조회 시, 캐시에 없는 경우")
+    void getDraftWithCache_cacheMiss_thenDbRestore() {
+        Member member = TestDataFactory.createMember();
+        Draft draft = TestDataFactory.createDraft(member);
+
+        given(draftRedisService.getDraftDataFromRedis(draft.getId())).willReturn(Map.of());
+        given(draftRepository.findByIdAndMember(draft.getId(), member)).willReturn(Optional.of(draft));
+
+        Draft result = draftService.getDraftWithCache(draft.getId(), member);
+
+        assertThat(result).isEqualTo(draft);
+
+        verify(draftRepository).findByIdAndMember(draft.getId(), member);
+        verify(draftRedisService).autoSave(draft);
+    }
+
+    @Test
+    @DisplayName("임시 저장본 조회 시, 캐시에 있지만 권한이 없는 경우")
+    void getDraftWithCache_cacheHitButAccessDenied() {
+        Member member = TestDataFactory.createMember();
+        Member unauthorizedMember = TestDataFactory.createMember("unauthorized_piggy");
+        UUID draftId = UUID.randomUUID();
+
+        Map<String, String> cacheData = Map.of(
+                "title", "제목",
+                "content", "내용",
+                "memberId", member.getId().toString(),
+                "imageId", "image-id",
+                "expiresAt", "2025-05-13T23:59:59Z"
+        );
+
+        given(draftRedisService.getDraftDataFromRedis(draftId)).willReturn(cacheData);
+
+        assertThatThrownBy(() -> draftService.getDraftWithCache(draftId, unauthorizedMember))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessageContaining("Access denied to this draft.");
+
     }
 }

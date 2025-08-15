@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -60,6 +61,8 @@ public class Draft {
         return Draft.builder()
                 .member(member)
                 .image(image)
+                .title("제목 없음")
+                .content("")
                 .build();
     }
 
@@ -77,5 +80,15 @@ public class Draft {
         if (title != null) this.title = title;
         if (content != null) this.content = content;
         extendTtl();
+    }
+
+    public static Draft restoreFromRedis(Map<String, String> draftData, Member member) {
+        Draft draft = Draft.builder()
+                .title(draftData.get("title"))
+                .content(draftData.get("content"))
+                .member(member)
+                .build();
+        draft.extendTtl();
+        return draft;
     }
 }

@@ -18,23 +18,28 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "image")
+    @OneToOne(mappedBy = "image")
     private Pin pin;
 
-    @Column(name = "filename", nullable = false, length = 256)
-    private String fileName;
+    @Column(name = "original_filename", nullable = false, length = 256)
+    private String originalFilename;
+
+    @Column(name = "file_path", nullable = false)
+    private String filePath;
 
     @CreationTimestamp
     private Instant createdAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Image(String fileName) {
-        this.fileName = fileName;
+    public Image(String originalFilename, String filePath) {
+        this.originalFilename = originalFilename;
+        this.filePath = filePath;
     }
 
-    public static Image of(String fileName) {
+    public static Image of(String originalFilename, String filePath) {
         return Image.builder()
-                .fileName(fileName)
+                .originalFilename(originalFilename)
+                .filePath(filePath)
                 .build();
     }
 }

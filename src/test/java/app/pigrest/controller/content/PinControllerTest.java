@@ -31,7 +31,7 @@ class PinControllerTest extends BaseControllerTest {
 
     @Test
     void getPinTest() throws Exception {
-        Image image = Image.of("filename");
+        Image image = Image.of("filename", "filePath");
         Pin pin = Pin.of(image, "title");
 
         given(pinService.getPinById(1L)).willReturn(pin); // Service 동작 정의
