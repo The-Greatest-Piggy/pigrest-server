@@ -12,7 +12,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -48,13 +47,13 @@ public class Draft {
     private Instant updatedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Draft(Member member, Image image, String title, String content) {
-        this.id = Generators.timeBasedEpochRandomGenerator().generate();
+    public Draft(UUID id, Member member, Image image, String title, String content, Instant expiresAt) {
+        this.id = id != null ? id : Generators.timeBasedEpochRandomGenerator().generate();
         this.member = member;
         this.image = image;
         this.title = title;
         this.content = content;
-        this.expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
+        this.expiresAt = expiresAt != null ? expiresAt : Instant.now().plus(7, ChronoUnit.DAYS);
     }
 
     public static Draft createFromImage(Member member, Image image) {
@@ -72,6 +71,23 @@ public class Draft {
                 .build();
     }
 
+    public static Draft restoreFromCache(UUID id, String title, String content,
+                                         Member member, Image image, Instant expiresAt,
+                                         Instant createdAt, Instant updatedAt) {
+        Draft draft = Draft.builder()
+                .id(id)
+                .title(title)
+                .content(content)
+                .member(member)
+                .image(image)
+                .expiresAt(expiresAt)
+                .build();
+        draft.setCreatedAtForRestore(createdAt);
+        draft.setUpdatedAtForRestore(updatedAt);
+        draft.extendTtl();
+        return draft;
+    }
+
     public void extendTtl() {
         this.expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
     }
@@ -79,16 +95,25 @@ public class Draft {
     public void updateFields(String title, String content) {
         if (title != null) this.title = title;
         if (content != null) this.content = content;
-        extendTtl();
     }
 
-    public static Draft restoreFromRedis(Map<String, String> draftData, Member member) {
-        Draft draft = Draft.builder()
-                .title(draftData.get("title"))
-                .content(draftData.get("content"))
-                .member(member)
-                .build();
-        draft.extendTtl();
-        return draft;
+    public void updateFields(String title, String content, Image image, Instant expiresAt) {
+        if (title != null) this.title = title;
+        if (content != null) this.content = content;
+        if (image != null) this.image = image;
+        if (expiresAt != null) this.expiresAt = expiresAt;
+    }
+
+    public boolean isValidFromCache() {
+        return member != null && image != null &&
+                expiresAt != null && createdAt != null && updatedAt != null;
+    }
+
+    private void setCreatedAtForRestore(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    private void setUpdatedAtForRestore(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
