@@ -28,6 +28,20 @@ public class TestDataFactory {
         return Draft.createFromImage(member, image);
     }
 
+    public static Draft createDraftFromDb(UUID id, Member member, Image image) {
+        Instant now = Instant.now();
+        return Draft.restoreFromCache(
+                id,
+                "데이터베이스에 저장된 제목",
+                "데이터베이스에 있는 내용",
+                member,
+                image,
+                now.plus(7, ChronoUnit.DAYS),
+                now,
+                now
+        );
+    }
+
     public static Draft createDraftFromCache(UUID id, Member member, Image image) {
         Instant now = Instant.now();
         return Draft.restoreFromCache(
@@ -39,6 +53,19 @@ public class TestDataFactory {
                 now.plus(7, ChronoUnit.DAYS),
                 now,
                 now
+        );
+    }
+
+    public static Draft createInvalidDraftFromCache(UUID id) {
+        return Draft.restoreFromCache(
+                id,
+                "유효하지 않는 데이터의 제목",
+                "유효하지 않는 데이터의 내용",
+                null,
+                null,
+                null,
+                null,
+                null
         );
     }
 }

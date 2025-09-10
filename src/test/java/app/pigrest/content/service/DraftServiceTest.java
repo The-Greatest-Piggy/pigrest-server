@@ -3,8 +3,6 @@ package app.pigrest.content.service;
 import app.pigrest.common.TestDataFactory;
 import app.pigrest.content.domain.Draft;
 import app.pigrest.content.domain.DraftRepository;
-import app.pigrest.content.domain.Image;
-import app.pigrest.global.exception.ForbiddenException;
 import app.pigrest.global.exception.ResourceNotFoundException;
 import app.pigrest.member.domain.Member;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)

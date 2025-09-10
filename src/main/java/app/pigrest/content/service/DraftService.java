@@ -66,8 +66,6 @@ public class DraftService {
                 try {
                     UUID draftId = UUID.fromString(draftIdStr);
                     syncSingleDraft(draftId);
-                } catch (IllegalArgumentException e) {
-                    log.error("Invalid draft ID: {}", draftIdStr);
                 } catch (Exception e) {
                     log.error("Failed to sync draft {}: {}", draftIdStr, e.getMessage());
                 }
