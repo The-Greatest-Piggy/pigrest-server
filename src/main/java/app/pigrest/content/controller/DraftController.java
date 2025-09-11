@@ -1,8 +1,11 @@
 package app.pigrest.content.controller;
 
 import app.pigrest.content.domain.Draft;
+import app.pigrest.content.domain.Pin;
 import app.pigrest.content.dto.request.DraftAutoSaveRequest;
+import app.pigrest.content.dto.request.PublishDraftRequest;
 import app.pigrest.content.dto.response.GetDraftResponse;
+import app.pigrest.content.dto.response.PublishDraftResponse;
 import app.pigrest.content.service.DraftService;
 import app.pigrest.global.common.ApiResponse;
 import app.pigrest.global.common.ApiStatusCode;
@@ -40,11 +43,25 @@ public class DraftController {
             @AuthenticationPrincipal CustomUser user) {
         Member member = memberService.getMember(user.getUsername());
         Draft draft = draftService.getDraftWithCache(draftId, member);
-        System.out.println("왜 때문일까");
 
         return ResponseEntity.ok(ApiResponse.success(
                 ApiStatusCode.OK,
                 "Draft retrieved successfully",
                 GetDraftResponse.of(draft)));
+    }
+
+    @PostMapping("/{draftId}/publish")
+    public ResponseEntity<ApiResponse<PublishDraftResponse>> publishDraft(
+            @PathVariable UUID draftId,
+            @RequestBody PublishDraftRequest request,
+            @AuthenticationPrincipal CustomUser user) {
+        Member member = memberService.getMember(user.getUsername());
+        Pin pin = draftService.publish(draftId, member, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        ApiStatusCode.OK,
+                        "Image created successfully",
+                        PublishDraftResponse.from(pin)));
     }
 }

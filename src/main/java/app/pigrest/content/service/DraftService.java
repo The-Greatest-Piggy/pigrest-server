@@ -1,7 +1,7 @@
 package app.pigrest.content.service;
 
-import app.pigrest.content.domain.Draft;
-import app.pigrest.content.domain.DraftRepository;
+import app.pigrest.content.domain.*;
+import app.pigrest.content.dto.request.PublishDraftRequest;
 import app.pigrest.global.common.ApiStatusCode;
 import app.pigrest.global.exception.ForbiddenException;
 import app.pigrest.global.exception.ResourceNotFoundException;
@@ -20,6 +20,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DraftService {
     private final DraftRepository draftRepository;
+    private final PinRepository pinRepository;
+//    private final ImageRepository imageRepository;
     private final DraftRedisService draftRedisService;
 
     @Transactional
@@ -79,12 +81,12 @@ public class DraftService {
         Draft draftFromCache = draftRedisService.getDraft(draftId);
         if (draftFromCache == null) {
             log.warn("No redis data for draft: {}", draftId);
-            draftRedisService.removeFromActiveDrafts(String.valueOf(draftId));
+            draftRedisService.removeFromActiveDrafts(draftId);
             return;
         }
         if (!draftFromCache.isValidFromCache()) {
             log.warn("Invalid redis data for draft: {}", draftId);
-            draftRedisService.removeFromActiveDrafts(String.valueOf(draftId));
+            draftRedisService.removeFromActiveDrafts(draftId);
             return;
         }
 
@@ -95,6 +97,22 @@ public class DraftService {
                     return new ResourceNotFoundException(ApiStatusCode.RESOURCE_NOT_FOUND, "Draft Not Found");
                 });
         draft.updateFields(draftFromCache.getTitle(), draftFromCache.getContent(), draftFromCache.getImage(), draftFromCache.getExpiresAt());
-        draftRedisService.removeFromActiveDrafts(String.valueOf(draftId));
+        draftRedisService.removeFromActiveDrafts(draftId);
+    }
+
+    @Transactional
+    public Pin publish(UUID draftId, Member member, PublishDraftRequest request) {
+        // TODO: ImageRepository findByIdAndOwnerId로 image 가져오고, 해당 사항 없으면 예외 발생
+        // Image Not Found or Access Denied
+        Image image = null;
+        Pin pin = Pin.create(member, image, request.getTitle(), request.getContent());
+        Pin savedPin = pinRepository.save(pin);
+
+        Draft draft = draftRepository.findByIdAndMember(draftId, member)
+                .orElseThrow(() -> new ForbiddenException(ApiStatusCode.FORBIDDEN, "Draft not found or access denied"));
+        draftRepository.delete(draft);
+
+        draftRedisService.cleanupDraftCache(draftId);
+        return savedPin;
     }
 }

@@ -37,6 +37,7 @@ public class Draft {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    // TODO: 사용하지 않는 Draft 정리
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 

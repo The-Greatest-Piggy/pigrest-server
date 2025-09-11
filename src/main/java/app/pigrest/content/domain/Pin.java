@@ -1,5 +1,6 @@
 package app.pigrest.content.domain;
 
+import app.pigrest.member.domain.Member;
 import com.fasterxml.uuid.Generators;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,12 +19,19 @@ public class Pin {
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
     private Image image;
 
     @Column(nullable = false)
     private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
     @CreationTimestamp
     private Instant createdAt;
@@ -34,16 +42,27 @@ public class Pin {
     private Instant deletedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Pin(Image image, String title) {
+    public Pin(Member member, Image image, String title, String content) {
         this.id = Generators.timeBasedEpochRandomGenerator().generate();
+        this.member = member;
         this.image = image;
         this.title = title;
+        this.content = content;
     }
 
     public static Pin of(Image image, String title) {
         return Pin.builder()
                 .image(image)
                 .title(title)
+                .build();
+    }
+
+    public static Pin create(Member member, Image image, String title, String content) {
+        return Pin.builder()
+                .member(member)
+                .image(image)
+                .title(title)
+                .content(content)
                 .build();
     }
 }

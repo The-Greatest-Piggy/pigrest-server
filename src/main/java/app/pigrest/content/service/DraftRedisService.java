@@ -74,8 +74,14 @@ public class DraftRedisService {
                 .collect(Collectors.toSet());
     }
 
-    public void removeFromActiveDrafts(String draftId) {
+    public void removeFromActiveDrafts(UUID draftId) {
         redisTemplate.opsForSet().remove("active_drafts", draftId);
+    }
+
+    public void cleanupDraftCache(UUID draftId) {
+        String key = generateDraftKey(draftId);
+        redisTemplate.delete(key);
+        removeFromActiveDrafts(draftId);
     }
 
     private String generateDraftKey(UUID draftId) {
