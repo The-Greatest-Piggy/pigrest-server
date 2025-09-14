@@ -3,11 +3,13 @@ package app.pigrest.content.service;
 import app.pigrest.content.domain.*;
 import app.pigrest.content.dto.request.PublishDraftRequest;
 import app.pigrest.global.common.ApiStatusCode;
+import app.pigrest.global.exception.ConflictException;
 import app.pigrest.global.exception.ForbiddenException;
 import app.pigrest.global.exception.ResourceNotFoundException;
 import app.pigrest.member.domain.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,17 +104,24 @@ public class DraftService {
 
     @Transactional
     public Pin publish(UUID draftId, Member member, PublishDraftRequest request) {
-        // TODO: ImageRepository findByIdAndOwnerId로 image 가져오고, 해당 사항 없으면 예외 발생
-        // Image Not Found or Access Denied
-        Image image = null;
-        Pin pin = Pin.create(member, image, request.getTitle(), request.getContent());
-        Pin savedPin = pinRepository.save(pin);
+        try {
+            // TODO: ImageRepository findByIdAndOwnerId로 image 가져오고, 해당 사항 없으면 예외 발생
+            // Image Not Found or Access Denied
+            Image image = null;
+            Pin pin = Pin.create(member, image, request.getTitle(), request.getContent());
+            Pin savedPin = pinRepository.save(pin);
+            cleanupDraft(draftId, member);
+            return savedPin;
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate pin creation attempt for member: {}, image: {}", member.getId(), request.getImageId());
+            throw new ConflictException("Pin already published with the same image.");
+        }
+    }
 
+    private void cleanupDraft(UUID draftId, Member member) {
         Draft draft = draftRepository.findByIdAndMember(draftId, member)
                 .orElseThrow(() -> new ForbiddenException(ApiStatusCode.FORBIDDEN, "Draft not found or access denied"));
         draftRepository.delete(draft);
-
         draftRedisService.cleanupDraftCache(draftId);
-        return savedPin;
     }
 }

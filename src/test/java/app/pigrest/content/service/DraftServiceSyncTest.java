@@ -21,7 +21,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -46,7 +45,7 @@ public class DraftServiceSyncTest {
 
         verify(draftRedisService, never()).getDraft(any(UUID.class));
         verify(draftRepository, never()).findById(any(UUID.class));
-        verify(draftRedisService, never()).removeFromActiveDrafts(anyString());
+        verify(draftRedisService, never()).removeFromActiveDrafts(any());
     }
 
     @Test
@@ -73,8 +72,8 @@ public class DraftServiceSyncTest {
 
         verify(draftRedisService, times(2)).getDraft(any(UUID.class));
         verify(draftRepository, times(2)).findById(any(UUID.class));
-        verify(draftRedisService).removeFromActiveDrafts(draftId1.toString());
-        verify(draftRedisService).removeFromActiveDrafts(draftId2.toString());
+        verify(draftRedisService).removeFromActiveDrafts(draftId1);
+        verify(draftRedisService).removeFromActiveDrafts(draftId2);
     }
 
     @Test
@@ -96,8 +95,8 @@ public class DraftServiceSyncTest {
         draftService.syncCacheToDatabase();
 
         verify(draftRedisService, times(2)).getDraft(any(UUID.class));
-        verify(draftRedisService, times(1)).removeFromActiveDrafts(validDraftId.toString());
-        verify(draftRedisService, never()).removeFromActiveDrafts(problemDraftId.toString());
+        verify(draftRedisService, times(1)).removeFromActiveDrafts(validDraftId);
+        verify(draftRedisService, never()).removeFromActiveDrafts(problemDraftId);
     }
 
     @Test
@@ -116,7 +115,7 @@ public class DraftServiceSyncTest {
 
         verify(draftRedisService, times(1)).getDraft(draftId);
         verify(draftRepository, times(1)).findById(draftId);
-        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId.toString());
+        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId);
         assertEquals(draftFromCache.getTitle(), draftFromDb.getTitle());
         assertEquals(draftFromCache.getContent(), draftFromDb.getContent());
         assertEquals(draftFromCache.getImage(), draftFromDb.getImage());
@@ -132,7 +131,7 @@ public class DraftServiceSyncTest {
         draftService.syncSingleDraft(draftId);
 
         verify(draftRedisService, times(1)).getDraft(draftId);
-        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId.toString());
+        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId);
         verify(draftRepository, never()).findById(any());
     }
 
@@ -147,7 +146,7 @@ public class DraftServiceSyncTest {
         draftService.syncSingleDraft(draftId);
 
         verify(draftRedisService, times(1)).getDraft(draftId);
-        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId.toString());
+        verify(draftRedisService, times(1)).removeFromActiveDrafts(draftId);
         verify(draftRepository, never()).findById(any());
     }
 
@@ -168,7 +167,7 @@ public class DraftServiceSyncTest {
 
         verify(draftRedisService, times(1)).getDraft(draftId);
         verify(draftRepository, times(1)).findById(draftId);
-        verify(draftRedisService, never()).removeFromActiveDrafts(draftId.toString());
+        verify(draftRedisService, never()).removeFromActiveDrafts(draftId);
 
     }
 }

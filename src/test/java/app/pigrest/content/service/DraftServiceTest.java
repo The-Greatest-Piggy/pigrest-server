@@ -1,8 +1,9 @@
 package app.pigrest.content.service;
 
 import app.pigrest.common.TestDataFactory;
-import app.pigrest.content.domain.Draft;
-import app.pigrest.content.domain.DraftRepository;
+import app.pigrest.content.domain.*;
+import app.pigrest.content.dto.request.PublishDraftRequest;
+import app.pigrest.global.exception.ConflictException;
 import app.pigrest.global.exception.ResourceNotFoundException;
 import app.pigrest.member.domain.Member;
 import org.junit.jupiter.api.DisplayName;
@@ -11,13 +12,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -25,6 +32,9 @@ import static org.mockito.Mockito.verify;
 class DraftServiceTest {
     @Mock
     private DraftRepository draftRepository;
+
+    @Mock
+    private PinRepository pinRepository;
 
     @Mock
     private DraftRedisService draftRedisService;
@@ -117,5 +127,55 @@ class DraftServiceTest {
         assertThatThrownBy(() -> draftService.autoSave(draftId, member, newTitle, newContent))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Draft Not Found");
+    }
+
+    @Test
+    @DisplayName("동시 발행 요청이 정상적으로 처리된다.")
+    void publish_concurrentRequests_onlyOneSuccess() throws InterruptedException {
+        int threadCount = 5;
+        CountDownLatch readyLatch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(threadCount);
+
+        Member member = TestDataFactory.createMember();
+        Image image = TestDataFactory.createImage();
+        Draft draft = TestDataFactory.createDraft(member);
+        PublishDraftRequest request = new PublishDraftRequest(image.getId(), "title", "content");
+
+        given(draftRepository.findByIdAndMember(any(), eq(member))).willReturn(Optional.of(draft));
+
+        given(pinRepository.save(any(Pin.class)))
+                .willReturn(Pin.create(member, image, draft.getTitle(), draft.getContent())) // 첫 번째만 성공
+                .willThrow(new DataIntegrityViolationException("Unique constraint violation")); // 나머지는 실패
+
+        // 작업 실행
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger conflictCount = new AtomicInteger(0);
+        Runnable worker = () -> {
+            try {
+                readyLatch.countDown();
+                startLatch.await();
+                draftService.publish(draft.getId(), member, request);
+                successCount.getAndIncrement();
+            } catch (ConflictException e) {
+                conflictCount.getAndIncrement();
+            } catch (InterruptedException e) {
+                fail("Unexpected exception: " + e.getMessage());
+            } finally {
+                finishLatch.countDown();
+            }
+        };
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(worker);
+        }
+        startLatch.countDown();
+        finishLatch.await();
+
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(conflictCount.get()).isEqualTo(threadCount - 1);
+
+        executor.shutdown();
     }
 }

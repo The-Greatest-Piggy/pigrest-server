@@ -12,7 +12,12 @@ import java.util.UUID;
 
 @Getter
 @Entity
-@Table(name = "pin")
+@Table(
+        name = "pin",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_member_image", columnNames = {"member_id", "image_id"})
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Pin {
     @Id
