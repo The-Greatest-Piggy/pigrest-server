@@ -26,9 +26,16 @@ public class DraftService {
 //    private final ImageRepository imageRepository;
     private final DraftRedisService draftRedisService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void autoSave(UUID draftId, Member member, String title, String content) {
-        Draft draft = getDraft(draftId, member);
+        Draft draft = draftRedisService.getDraft(draftId);
+        if (draft == null) {
+            draft = getDraft(draftId, member);
+        } else {
+            if (!draft.getMember().getId().equals(member.getId())) {
+                throw new ForbiddenException(ApiStatusCode.FORBIDDEN, "Access denied to this draft");
+            }
+        }
 
         // TODO: image 변경은 다른 API로 분리
         draft.updateFields(title, content);
@@ -65,7 +72,6 @@ public class DraftService {
         Set<String> activeDraftIds = draftRedisService.getActiveDraftIds();
         log.info("Found {} active drafts: {}", activeDraftIds.size(), activeDraftIds);
         if (!activeDraftIds.isEmpty()) {
-            // FIXME: Redis I/O 병목이 발생할 수 있을 것 같음. 추후 확인해볼 것
             activeDraftIds.forEach(draftIdStr -> {
                 try {
                     UUID draftId = UUID.fromString(draftIdStr);
@@ -75,7 +81,6 @@ public class DraftService {
                 }
             });
         }
-        // TODO: fixedRate과 fixedDelay는 각각 어떤 상황에 알맞는지 판단할 것
     }
 
     @Transactional

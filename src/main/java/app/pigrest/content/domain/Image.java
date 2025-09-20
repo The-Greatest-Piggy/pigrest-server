@@ -18,9 +18,6 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "image")
-    private Pin pin;
-
     @Column(name = "original_filename", nullable = false, length = 256)
     private String originalFilename;
 
